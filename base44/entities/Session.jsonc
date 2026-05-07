@@ -28,6 +28,19 @@
       ],
       "default": "medium"
     },
+    "category": {
+      "type": "string",
+      "enum": [
+        "daily",
+        "mental_math",
+        "percentages_growth",
+        "business_math",
+        "market_sizing",
+        "gmat_quant"
+      ],
+      "default": "daily",
+      "description": "Training category"
+    },
     "questions_answered": {
       "type": "number",
       "description": "Number of questions answered"

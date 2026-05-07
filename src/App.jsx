@@ -13,6 +13,7 @@ import Drill from '@/pages/Drill';
 import Results from '@/pages/Results';
 import Progress from '@/pages/Progress';
 import Badges from '@/pages/Badges';
+import Paywall from '@/pages/Paywall';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -45,6 +46,7 @@ const AuthenticatedApp = () => {
         </Route>
         <Route path="/drill" element={<PageTransition><Drill /></PageTransition>} />
         <Route path="/results" element={<PageTransition><Results /></PageTransition>} />
+        <Route path="/paywall" element={<PageTransition><Paywall /></PageTransition>} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </AnimatePresence>

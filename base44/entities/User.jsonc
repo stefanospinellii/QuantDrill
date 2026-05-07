@@ -1,0 +1,46 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "user"
+      ],
+      "description": "The role of the user"
+    },
+    "streak_count": {
+      "type": "number",
+      "description": "Current streak in days"
+    },
+    "last_active_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Last day user completed a drill"
+    },
+    "is_premium": {
+      "type": "boolean",
+      "description": "Whether user has premium access",
+      "default": false
+    },
+    "premium_expires": {
+      "type": "string",
+      "format": "date",
+      "description": "Premium expiry date if subscription"
+    },
+    "drills_today": {
+      "type": "number",
+      "description": "Drills completed today (resets daily)",
+      "default": 0
+    },
+    "drills_today_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of last drills_today reset"
+    }
+  },
+  "required": [
+    "role"
+  ]
+}
