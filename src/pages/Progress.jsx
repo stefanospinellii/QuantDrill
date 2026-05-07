@@ -1,29 +1,32 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Flame, TrendingUp, Zap, Target } from 'lucide-react';
-import { format, parseISO, subDays } from 'date-fns';
+import { format, subDays } from 'date-fns';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 
 export default function Progress() {
   const [sessions, setSessions] = useState([]);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const [u, s] = await Promise.all([
-          base44.auth.me(),
-          base44.entities.Session.list('-date', 30),
-        ]);
-        setUser(u);
-        setSessions(s);
-      } catch (e) {}
-      finally { setLoading(false); }
-    }
-    load();
+  const load = useCallback(async () => {
+    try {
+      const [u, s] = await Promise.all([
+        base44.auth.me(),
+        base44.entities.Session.list('-date', 30),
+      ]);
+      setUser(u);
+      setSessions(s);
+    } catch (e) {}
+    finally { setLoading(false); }
   }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const { containerRef, pullDistance, isRefreshing, handlers } = usePullToRefresh(load);
 
   // Build last 7 days chart data
   const last7 = Array.from({ length: 7 }, (_, i) => {
@@ -60,7 +63,12 @@ export default function Progress() {
   }
 
   return (
-    <div className="min-h-screen bg-background px-5 pt-10 pb-6">
+    <div
+      ref={containerRef}
+      className="min-h-screen bg-background px-5 pt-10 pb-6 overflow-y-auto"
+      {...handlers}
+    >
+      <PullToRefreshIndicator pullDistance={pullDistance} isRefreshing={isRefreshing} />
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h2 className="text-2xl font-grotesk font-bold text-foreground mb-1">Progress</h2>
         <p className="text-sm text-muted-foreground mb-8">Your personal training over the last 7 days</p>

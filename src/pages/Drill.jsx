@@ -88,34 +88,36 @@ export default function Drill() {
     const percentile = getPercentile(score, difficulty);
     const today = getTodayDate();
 
-    // Save session
-    try {
-      await base44.entities.Session.create({
-        date: today,
-        score,
-        accuracy,
-        avg_time: avgTime,
-        difficulty,
-        questions_answered: TOTAL_QUESTIONS,
-        correct_count: correct,
-        speed_rating: speedRating,
-        percentile,
-      });
-
-      // Update user streak
-      const user = await base44.auth.me();
-      const newStreak = calculateNewStreak(user.streak_count || 0, user.last_active_date);
-      await base44.auth.updateMe({
-        streak_count: newStreak,
-        last_active_date: today,
-      });
-    } catch (e) {
-      console.error('Could not save session:', e);
-    }
-
+    // Navigate immediately (optimistic) — save in background
     navigate('/results', {
       state: { score, accuracy, avgTime, speedRating, percentile, difficulty, correct, total: TOTAL_QUESTIONS },
     });
+
+    // Fire-and-forget persistence
+    (async () => {
+      try {
+        await base44.entities.Session.create({
+          date: today,
+          score,
+          accuracy,
+          avg_time: avgTime,
+          difficulty,
+          questions_answered: TOTAL_QUESTIONS,
+          correct_count: correct,
+          speed_rating: speedRating,
+          percentile,
+        });
+
+        const user = await base44.auth.me();
+        const newStreak = calculateNewStreak(user.streak_count || 0, user.last_active_date);
+        await base44.auth.updateMe({
+          streak_count: newStreak,
+          last_active_date: today,
+        });
+      } catch (e) {
+        console.error('Could not save session:', e);
+      }
+    })();
   };
 
   return (

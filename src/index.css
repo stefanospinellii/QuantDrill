@@ -56,8 +56,17 @@
   }
 }
 
+@layer base {
+  /* Globally disable text selection + tap highlight on all interactive elements */
+  button, a, nav, [role="button"] {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
 @layer utilities {
-  /* Disable text selection on interactive UI elements */
+  /* .no-select remains for any additional elements */
   .no-select {
     -webkit-user-select: none;
     user-select: none;
