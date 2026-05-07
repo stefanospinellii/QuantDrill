@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
-import { Flame, Zap, ChevronRight, Star, Settings, ChevronDown } from 'lucide-react';
+import { Flame, Zap, Star, Settings, ChevronDown, ChevronRight } from 'lucide-react';
 import { hasCompletedTodaysSprint, isStreakAlive } from '@/lib/streakUtils';
 import SettingsModal from '@/components/SettingsModal';
 import DifficultySheet from '@/components/DifficultySheet';
+import CategoryCards from '@/components/CategoryCards';
 
 const DIFFICULTY_LABELS = { easy: 'Easy · 15s', medium: 'Medium · 12s', hard: 'Hard · 8s' };
 
@@ -23,7 +24,7 @@ export default function Home() {
       try {
         const u = await base44.auth.me();
         setUser(u);
-        const s = await base44.entities.Session.list('-created_date', 7);
+        const s = await base44.entities.Session.list('-created_date', 20);
         setSessions(s);
       } catch (e) {}
       finally { setLoading(false); }
@@ -37,6 +38,7 @@ export default function Home() {
   const completedToday = hasCompletedTodaysSprint(lastActive);
   const lastSession = sessions[0];
   const lastScore = lastSession?.score ?? null;
+  const totalDrills = sessions.length;
 
   if (loading) {
     return (
@@ -48,18 +50,15 @@ export default function Home() {
 
   return (
     <div
-      className="min-h-screen bg-background px-5 pb-6 flex flex-col"
+      className="min-h-screen bg-background px-5 pb-8 flex flex-col gap-6"
       style={{ paddingTop: 'max(48px, env(safe-area-inset-top, 48px))' }}
     >
-      {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-grotesk font-bold text-foreground tracking-tight">
-              Quant<span className="text-neon-purple">Drill</span>
-            </h1>
-
-          </div>
+      {/* ── Header ── */}
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-grotesk font-bold text-foreground tracking-tight">
+            Quant<span className="text-neon-purple">Drill</span>
+          </h1>
           <button
             onClick={() => setSettingsOpen(true)}
             className="w-9 h-9 bg-surface-2 rounded-xl flex items-center justify-center border border-border hover:border-primary transition-colors no-select"
@@ -67,9 +66,11 @@ export default function Home() {
             <Settings size={16} className="text-muted-foreground" />
           </button>
         </div>
+      </motion.div>
 
-        {/* Stats Row */}
-        <div className="grid grid-cols-3 gap-3 mb-8">
+      {/* ── Stats Row ── */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
+        <div className="grid grid-cols-3 gap-3">
           <StatCard
             label="Streak"
             value={streak}
@@ -86,21 +87,21 @@ export default function Home() {
             color="purple"
           />
           <StatCard
-            label="Sessions"
-            value={sessions.length}
-            unit="total"
+            label="Total Drills"
+            value={totalDrills}
+            unit="sessions"
             icon={<Zap size={16} className="text-neon-cyan" />}
             color="cyan"
           />
         </div>
       </motion.div>
 
-      {/* Completed today banner */}
+      {/* ── Completed today banner ── */}
       {completedToday && (
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="mb-5 bg-surface-2 border border-neon-cyan/20 rounded-2xl px-4 py-3 flex items-center gap-3"
+          className="bg-surface-2 border border-neon-cyan/20 rounded-2xl px-4 py-3 flex items-center gap-3"
         >
           <div className="w-8 h-8 rounded-full bg-neon-cyan/10 flex items-center justify-center">
             <Zap size={16} className="text-neon-cyan" />
@@ -112,40 +113,40 @@ export default function Home() {
         </motion.div>
       )}
 
-      {/* Difficulty selector — Bottom Sheet on mobile */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }} className="mb-6">
-        <p className="text-xs font-medium text-muted-foreground tracking-widest uppercase mb-3">Difficulty</p>
+      {/* ── Daily Drill CTA (Primary) ── */}
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}>
+        {/* Difficulty selector */}
         <button
           onClick={() => setDiffSheetOpen(true)}
-          className="w-full flex items-center justify-between bg-surface-2 border border-border rounded-2xl px-4 py-3.5 no-select hover:border-primary/50 transition-colors"
+          className="w-full flex items-center justify-between bg-surface-2 border border-border rounded-xl px-4 py-2.5 mb-3 no-select hover:border-primary/50 transition-colors"
         >
-          <span className="text-sm font-semibold text-foreground">{DIFFICULTY_LABELS[difficulty]}</span>
-          <ChevronDown size={16} className="text-muted-foreground" />
+          <span className="text-xs text-muted-foreground uppercase tracking-widest font-medium">Difficulty</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm font-semibold text-foreground">{DIFFICULTY_LABELS[difficulty]}</span>
+            <ChevronDown size={14} className="text-muted-foreground" />
+          </div>
         </button>
-      </motion.div>
 
-      {/* CTA */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25 }}
-        className="mt-auto"
-      >
+        {/* Big CTA */}
         <button
-          onClick={() => navigate(`/drill?difficulty=${difficulty}`)}
+          onClick={() => navigate(`/drill?difficulty=${difficulty}&category=daily`)}
           className="w-full bg-primary text-primary-foreground font-grotesk font-bold text-lg py-5 rounded-2xl glow-purple transition-all duration-200 active:scale-95 flex items-center justify-center gap-3 no-select"
         >
           <Zap size={22} />
-          {completedToday ? 'Start Another Drill' : 'Start Daily Drill'}
+          {completedToday ? 'Train Again' : 'Start Daily Drill'}
           <ChevronRight size={20} />
         </button>
-
-        <p className="text-center text-xs text-muted-foreground mt-4">
-          10 questions · ~3 minutes · Score 0–100
+        <p className="text-center text-xs text-muted-foreground mt-2.5">
+          10 questions · mixed categories · ~3 min
         </p>
       </motion.div>
 
-      {/* Modals */}
+      {/* ── Focused Practice ── */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.28 }}>
+        <CategoryCards difficulty={difficulty} />
+      </motion.div>
+
+      {/* ── Modals ── */}
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <DifficultySheet
         open={diffSheetOpen}

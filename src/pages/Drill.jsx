@@ -15,9 +15,10 @@ export default function Drill() {
   const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
   const difficulty = urlParams.get('difficulty') || 'medium';
+  const category = urlParams.get('category') || 'daily';
   const timerSeconds = getTimerSeconds(difficulty);
 
-  const [questions] = useState(() => generateSession(difficulty, TOTAL_QUESTIONS));
+  const [questions] = useState(() => generateSession(difficulty, TOTAL_QUESTIONS, category));
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answer, setAnswer] = useState('');
   const [results, setResults] = useState([]);
