@@ -26,7 +26,7 @@ export default function DifficultySheet({ open, value, onChange, onClose }) {
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-            className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-surface-1 border-t border-border rounded-t-3xl z-50 pb-safe"
+            className="fixed bottom-0 inset-x-0 mx-auto w-full max-w-md bg-surface-1 border-t border-border rounded-t-3xl z-50 pb-safe"
           >
             <div className="flex justify-center pt-3 pb-1">
               <div className="w-10 h-1 bg-surface-3 rounded-full" />
