@@ -6,7 +6,8 @@ import { generateSession, checkAnswer, getTimerSeconds, calculateScore, getSpeed
 import { calculateNewStreak, getTodayDate } from '@/lib/streakUtils';
 import TimerRing from '@/components/drill/TimerRing';
 import QuestionCard from '@/components/drill/QuestionCard';
-import { X, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
+import MobileHeader from '@/components/MobileHeader';
 
 const TOTAL_QUESTIONS = 10;
 
@@ -121,17 +122,11 @@ export default function Drill() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col px-5 pt-8 pb-6">
-      {/* Top bar */}
-      <div className="flex items-center justify-between mb-8">
-        <button
-          onClick={() => navigate('/')}
-          className="w-9 h-9 bg-surface-2 rounded-xl flex items-center justify-center border border-border"
-        >
-          <X size={16} className="text-muted-foreground" />
-        </button>
+    <div className="min-h-screen bg-background flex flex-col pb-6">
+      <MobileHeader title="Drill" onBack={() => navigate('/')} />
 
-        {/* Progress dots */}
+      {/* Progress + counter row */}
+      <div className="flex items-center justify-between px-5 mt-5 mb-6">
         <div className="flex gap-1.5">
           {questions.map((_, i) => (
             <div
@@ -146,14 +141,13 @@ export default function Drill() {
             />
           ))}
         </div>
-
         <span className="text-sm font-grotesk font-semibold text-muted-foreground tabular-nums">
           {currentIdx + 1}<span className="text-muted-foreground/40">/{TOTAL_QUESTIONS}</span>
         </span>
       </div>
 
       {/* Timer */}
-      <div className="flex justify-center mb-8">
+      <div className="flex justify-center px-5 mb-8">
         <TimerRing
           key={timerKey}
           duration={timerSeconds}
@@ -163,7 +157,7 @@ export default function Drill() {
       </div>
 
       {/* Question */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col px-5">
         <div className="bg-surface-1 border border-border rounded-3xl p-6 mb-6 min-h-[140px] flex items-center">
           <AnimatePresence mode="wait">
             <QuestionCard

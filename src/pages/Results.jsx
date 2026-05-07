@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Zap, Target, Clock, BarChart2, Flame, RotateCcw, Home } from 'lucide-react';
+import { Target, Clock, BarChart2, Flame, RotateCcw, Home } from 'lucide-react';
+import MobileHeader from '@/components/MobileHeader';
 
 export default function Results() {
   const navigate = useNavigate();
@@ -25,7 +26,9 @@ export default function Results() {
     score >= 60 ? 'glow-purple' : '';
 
   return (
-    <div className="min-h-screen bg-background px-5 pt-10 pb-8 flex flex-col">
+    <div className="min-h-screen bg-background pb-8 flex flex-col">
+      <MobileHeader title="Results" onBack={() => navigate('/')} />
+      <div className="flex-1 flex flex-col px-5 pt-6">
       {/* Score Hero */}
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
@@ -96,6 +99,7 @@ export default function Results() {
           <Home size={18} /> Return Home
         </button>
       </motion.div>
+      </div>
     </div>
   );
 }
