@@ -1,10 +1,12 @@
 import { Toaster } from "@/components/ui/toaster"
+import { useState } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import PageTransition from '@/components/PageTransition';
 import PageNotFound from './lib/PageNotFound';
+import SplashScreen from '@/components/SplashScreen';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Layout from '@/components/Layout';
@@ -54,12 +56,17 @@ const AuthenticatedApp = () => {
 };
 
 function App() {
+  const [splashDone, setSplashDone] = useState(false);
+
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
-        <Router>
-          <AuthenticatedApp />
-        </Router>
+        <SplashScreen onDone={() => setSplashDone(true)} />
+        {splashDone && (
+          <Router>
+            <AuthenticatedApp />
+          </Router>
+        )}
         <Toaster />
       </QueryClientProvider>
     </AuthProvider>
