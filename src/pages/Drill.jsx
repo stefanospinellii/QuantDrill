@@ -7,6 +7,7 @@ import { calculateNewStreak, getTodayDate } from '@/lib/streakUtils';
 import GlobalTimer from '@/components/drill/GlobalTimer';
 import QuestionCard from '@/components/drill/QuestionCard';
 import MobileHeader from '@/components/MobileHeader';
+import { CheckCircle2 } from 'lucide-react';
 
 export default function Drill() {
   const navigate = useNavigate();
@@ -94,13 +95,13 @@ export default function Drill() {
 
     const correct = checkAnswer(val, currentQ.correct_answer);
     if (correct) {
-      // Correct → record + instant advance
       const timeTaken = (Date.now() - startTime) / 1000;
       const result = { correct: true, timeTaken, answer: val, correctAnswer: currentQ.correct_answer };
       const newResults = [...resultsRef.current, result];
       setFlash('correct');
-      // Tiny delay so user sees the green flash
-      setTimeout(() => advanceToNext(newResults), 120);
+      // Haptic feedback on mobile
+      if (navigator.vibrate) navigator.vibrate(40);
+      setTimeout(() => advanceToNext(newResults), 380);
     }
   };
 
@@ -154,7 +155,7 @@ export default function Drill() {
       </div>
 
       {/* Question card */}
-      <div className="flex-1 flex flex-col px-5">
+      <div className="flex-1 flex flex-col px-5 relative">
         <div className="bg-surface-1 border border-border rounded-3xl p-6 mb-5 min-h-[160px] flex items-center">
           <AnimatePresence mode="wait">
             <QuestionCard
@@ -165,6 +166,24 @@ export default function Drill() {
             />
           </AnimatePresence>
         </div>
+
+        {/* Correct-answer overlay */}
+        <AnimatePresence>
+          {flash === 'correct' && (
+            <motion.div
+              key="correct-overlay"
+              initial={{ opacity: 0, scale: 0.7 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.1 }}
+              transition={{ type: 'spring', damping: 18, stiffness: 320 }}
+              className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none"
+            >
+              <div className="bg-emerald-500/90 rounded-full p-5 shadow-xl shadow-emerald-500/30">
+                <CheckCircle2 size={52} className="text-white" strokeWidth={2} />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Wrong-answer flash banner */}
         <AnimatePresence>

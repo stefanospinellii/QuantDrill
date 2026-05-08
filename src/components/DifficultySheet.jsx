@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Lock, Check } from 'lucide-react';
+import { X, Lock, Check, Zap } from 'lucide-react';
 
 const DIFFICULTIES = [
   { key: 'easy',   label: 'Easy',   desc: 'Beginner-friendly · simpler calculations' },
@@ -18,18 +18,14 @@ export default function DifficultySheet({ open, value, onClose, category, onStar
   const [difficulty, setDifficulty] = useState(value || 'medium');
   const [duration, setDuration] = useState(null);
 
-  const handleDurationSelect = (mins) => {
-    setDuration(mins);
-    // Small delay so user sees the pill highlight before navigation
-    setTimeout(() => {
-      onClose();
-      onStart({ difficulty, duration: mins, category });
-    }, 180);
+  const handleStart = () => {
+    if (!duration) return;
+    onClose();
+    onStart({ difficulty, duration, category });
   };
 
   const handleDifficultySelect = (key) => {
     setDifficulty(key);
-    setDuration(null); // reset so user picks duration
   };
 
   return (
@@ -99,14 +95,14 @@ export default function DifficultySheet({ open, value, onClose, category, onStar
 
               {/* Session Length */}
               <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest mb-2.5">Session Length</p>
-              <div className="flex gap-2">
+              <div className="flex gap-2 mb-5">
                 {DURATIONS.map(d => (
                   <button
                     key={d.minutes}
-                    onClick={() => handleDurationSelect(d.minutes)}
+                    onClick={() => setDuration(d.minutes)}
                     className={`flex-1 py-3.5 rounded-2xl border font-grotesk font-bold text-base no-select transition-all active:scale-[0.95] ${
                       duration === d.minutes
-                        ? 'bg-primary border-primary text-primary-foreground'
+                        ? 'bg-primary/10 border-primary text-primary'
                         : 'bg-surface-2 border-border text-foreground hover:border-primary/40'
                     }`}
                   >
@@ -114,6 +110,18 @@ export default function DifficultySheet({ open, value, onClose, category, onStar
                   </button>
                 ))}
               </div>
+
+              {/* Start CTA */}
+              <motion.button
+                onClick={handleStart}
+                disabled={!duration}
+                animate={{ opacity: duration ? 1 : 0.4, scale: duration ? 1 : 0.98 }}
+                transition={{ duration: 0.18 }}
+                className="w-full bg-primary text-primary-foreground font-grotesk font-bold text-lg py-4 rounded-2xl glow-purple flex items-center justify-center gap-2 no-select active:scale-95 transition-transform disabled:cursor-default"
+              >
+                <Zap size={20} />
+                Start Session
+              </motion.button>
 
             </div>
           </motion.div>
