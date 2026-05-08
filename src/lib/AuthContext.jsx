@@ -2,6 +2,17 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
+import { queryClientInstance } from '@/lib/query-client';
+
+// Keys that must be wiped on logout
+const USER_CACHE_KEYS = ['qd_splash_shown'];
+
+function clearUserCache() {
+  // Clear React Query cache so no previous user's data leaks
+  queryClientInstance.clear();
+  // Clear any app-specific sessionStorage keys
+  USER_CACHE_KEYS.forEach(k => sessionStorage.removeItem(k));
+}
 
 const AuthContext = createContext();
 
@@ -91,10 +102,15 @@ export const AuthProvider = ({ children }) => {
 
   const checkUserAuth = async () => {
     try {
-      // Now check if the user is authenticated
       setIsLoadingAuth(true);
       const currentUser = await base44.auth.me();
-      setUser(currentUser);
+      // If switching users, flush the previous user's cached data
+      setUser(prev => {
+        if (prev && prev.id !== currentUser.id) {
+          clearUserCache();
+        }
+        return currentUser;
+      });
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
       setAuthChecked(true);
@@ -117,12 +133,11 @@ export const AuthProvider = ({ children }) => {
   const logout = (shouldRedirect = true) => {
     setUser(null);
     setIsAuthenticated(false);
-    
+    // Clear all user-specific cached state
+    clearUserCache();
     if (shouldRedirect) {
-      // Use the SDK's logout method which handles token cleanup and redirect
       base44.auth.logout(window.location.href);
     } else {
-      // Just remove the token without redirect
       base44.auth.logout();
     }
   };

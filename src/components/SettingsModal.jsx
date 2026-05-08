@@ -2,20 +2,27 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Trash2, LogOut, AlertTriangle, ChevronRight } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { queryClientInstance } from '@/lib/query-client';
+
+function clearUserCache() {
+  queryClientInstance.clear();
+  sessionStorage.removeItem('qd_splash_shown');
+}
 
 export default function SettingsModal({ open, onClose }) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const handleLogout = () => {
+    clearUserCache();
     base44.auth.logout('/');
   };
 
   const handleDeleteAccount = async () => {
     setDeleting(true);
     try {
-      // Clear user data then logout
       await base44.auth.updateMe({ streak_count: 0, last_active_date: null });
+      clearUserCache();
       base44.auth.logout('/');
     } catch (e) {
       setDeleting(false);
