@@ -1,6 +1,6 @@
 // Freemium gate logic for QuantDrill
 
-export const FREE_DAILY_LIMIT = 35;
+export const FREE_DAILY_LIMIT = 25;
 
 /**
  * Returns { allowed, usedToday, remaining, isPremium }

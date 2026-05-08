@@ -2,42 +2,51 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
-import { generateSession, checkAnswer, getTimerSeconds, calculateScore, getSpeedRating, getPercentile } from '@/lib/questionGenerator';
+import { generateQuestion, checkAnswer, calculateSessionScore, getSpeedRating, getSpeedPercentile } from '@/lib/questionGenerator';
 import { calculateNewStreak, getTodayDate } from '@/lib/streakUtils';
-import TimerRing from '@/components/drill/TimerRing';
+import GlobalTimer from '@/components/drill/GlobalTimer';
 import QuestionCard from '@/components/drill/QuestionCard';
 import { ArrowRight } from 'lucide-react';
 import MobileHeader from '@/components/MobileHeader';
-
-const TOTAL_QUESTIONS = 10;
 
 export default function Drill() {
   const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
   const difficulty = urlParams.get('difficulty') || 'medium';
   const category = urlParams.get('category') || 'daily';
-  const timerSeconds = getTimerSeconds(difficulty);
+  const durationMinutes = parseInt(urlParams.get('duration') || '5', 10);
+  const totalSeconds = durationMinutes * 60;
 
-  const [questions] = useState(() => generateSession(difficulty, TOTAL_QUESTIONS, category));
-  const [currentIdx, setCurrentIdx] = useState(0);
+  const [currentQ, setCurrentQ] = useState(() => generateQuestion(difficulty, category));
   const [answer, setAnswer] = useState('');
   const [results, setResults] = useState([]);
   const [phase, setPhase] = useState('question'); // question | feedback
   const [isCorrect, setIsCorrect] = useState(null);
+  const [questionCount, setQuestionCount] = useState(0);
   const [startTime, setStartTime] = useState(Date.now());
-  const [timerKey, setTimerKey] = useState(0);
   const [shake, setShake] = useState(false);
+  const [sessionActive, setSessionActive] = useState(true);
   const inputRef = useRef(null);
-
-  const currentQ = questions[currentIdx];
+  const resultsRef = useRef([]);
 
   useEffect(() => {
-    setStartTime(Date.now());
-    setAnswer('');
-    setPhase('question');
-    setTimerKey(k => k + 1);
     setTimeout(() => inputRef.current?.focus(), 100);
-  }, [currentIdx]);
+  }, []);
+
+  useEffect(() => {
+    if (phase === 'question') {
+      setStartTime(Date.now());
+      setAnswer('');
+      setTimeout(() => inputRef.current?.focus(), 80);
+    }
+  }, [phase, currentQ]);
+
+  const nextQuestion = useCallback((newResults) => {
+    resultsRef.current = newResults;
+    setCurrentQ(generateQuestion(difficulty, category));
+    setQuestionCount(c => c + 1);
+    setPhase('question');
+  }, [difficulty, category]);
 
   const submitAnswer = useCallback((userAnswer) => {
     if (phase !== 'question') return;
@@ -46,30 +55,16 @@ export default function Drill() {
     setIsCorrect(correct);
     setPhase('feedback');
 
-    const result = {
-      correct,
-      timeTaken,
-      timeLimit: timerSeconds,
-      answer: userAnswer,
-      correctAnswer: currentQ.correct_answer,
-    };
+    const result = { correct, timeTaken, answer: userAnswer, correctAnswer: currentQ.correct_answer };
+    const newResults = [...resultsRef.current, result];
 
-    const newResults = [...results, result];
-
-    setTimeout(() => {
-      if (currentIdx < TOTAL_QUESTIONS - 1) {
-        setResults(newResults);
-        setCurrentIdx(i => i + 1);
-        setPhase('question');
-      } else {
-        finishSession(newResults);
-      }
-    }, 600);
-  }, [phase, currentIdx, results, startTime, timerSeconds, currentQ]);
+    setTimeout(() => nextQuestion(newResults), 700);
+  }, [phase, startTime, currentQ, nextQuestion]);
 
   const handleTimerExpire = useCallback(() => {
-    submitAnswer('');
-  }, [submitAnswer]);
+    setSessionActive(false);
+    finishSession(resultsRef.current);
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -82,101 +77,82 @@ export default function Drill() {
   };
 
   const finishSession = async (finalResults) => {
-    const score = calculateScore(finalResults, difficulty);
+    if (!finalResults.length) {
+      navigate('/');
+      return;
+    }
+
     const correct = finalResults.filter(r => r.correct).length;
-    const accuracy = Math.round((correct / TOTAL_QUESTIONS) * 100);
-    const avgTime = parseFloat((finalResults.reduce((s, r) => s + r.timeTaken, 0) / finalResults.length).toFixed(1));
+    const total = finalResults.length;
+    const accuracy = Math.round((correct / total) * 100);
+    const avgTime = parseFloat((finalResults.reduce((s, r) => s + r.timeTaken, 0) / total).toFixed(1));
+    const score = calculateSessionScore(finalResults, difficulty);
     const speedRating = getSpeedRating(avgTime, difficulty);
-    const percentile = getPercentile(score, difficulty);
+    const speedPercentile = getSpeedPercentile(avgTime, difficulty);
     const today = getTodayDate();
 
-    // Navigate immediately (optimistic) — save in background
     navigate('/results', {
-      state: { score, accuracy, avgTime, speedRating, percentile, difficulty, correct, total: TOTAL_QUESTIONS, category },
+      state: { score, accuracy, avgTime, speedRating, speedPercentile, difficulty, correct, total, category, durationMinutes },
     });
 
-    // Fire-and-forget persistence
     (async () => {
       try {
         await base44.entities.Session.create({
-          date: today,
-          score,
-          accuracy,
-          avg_time: avgTime,
-          difficulty,
-          category,
-          questions_answered: TOTAL_QUESTIONS,
+          date: today, score, accuracy, avg_time: avgTime,
+          difficulty, category,
+          questions_answered: total,
           correct_count: correct,
           speed_rating: speedRating,
-          percentile,
+          percentile: speedPercentile,
         });
-
         const user = await base44.auth.me();
         const newStreak = calculateNewStreak(user.streak_count || 0, user.last_active_date);
-        await base44.auth.updateMe({
-          streak_count: newStreak,
-          last_active_date: today,
-        });
-      } catch (e) {
-        console.error('Could not save session:', e);
-      }
+        await base44.auth.updateMe({ streak_count: newStreak, last_active_date: today });
+      } catch (e) {}
     })();
   };
 
   return (
     <div className="min-h-screen bg-background flex flex-col pb-6">
-      <MobileHeader title="Drill" onBack={() => navigate('/')} />
+      <MobileHeader title="" onBack={() => { setSessionActive(false); navigate('/'); }} />
 
-      {/* Progress + counter row */}
-      <div className="flex items-center justify-between px-5 mt-5 mb-6">
-        <div className="flex gap-1.5">
-          {questions.map((_, i) => (
-            <div
-              key={i}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                i < currentIdx
-                  ? 'bg-primary w-4'
-                  : i === currentIdx
-                  ? 'bg-primary/60 w-4'
-                  : 'bg-surface-3 w-1.5'
-              }`}
-            />
-          ))}
-        </div>
-        <span className="text-sm font-grotesk font-semibold text-muted-foreground tabular-nums">
-          {currentIdx + 1}<span className="text-muted-foreground/40">/{TOTAL_QUESTIONS}</span>
-        </span>
-      </div>
-
-      {/* Timer */}
-      <div className="flex justify-center px-5 mb-8">
-        <TimerRing
-          key={timerKey}
-          duration={timerSeconds}
+      {/* Global session timer */}
+      <div className="mt-4">
+        <GlobalTimer
+          totalSeconds={totalSeconds}
           onExpire={handleTimerExpire}
-          isActive={phase === 'question'}
+          isActive={sessionActive}
         />
       </div>
 
-      {/* Question */}
+      {/* Question counter */}
+      <div className="flex items-center justify-between px-5 mb-5">
+        <span className="text-xs text-muted-foreground uppercase tracking-widest">Question {questionCount + 1}</span>
+        <span className="text-xs font-semibold text-muted-foreground tabular-nums">
+          {resultsRef.current.filter(r => r.correct).length}
+          <span className="text-muted-foreground/40"> correct so far</span>
+        </span>
+      </div>
+
+      {/* Question card */}
       <div className="flex-1 flex flex-col px-5">
-        <div className="bg-surface-1 border border-border rounded-3xl p-6 mb-6 min-h-[140px] flex items-center">
+        <div className="bg-surface-1 border border-border rounded-3xl p-6 mb-5 min-h-[160px] flex items-center">
           <AnimatePresence mode="wait">
             <QuestionCard
-              key={currentIdx}
+              key={`${questionCount}-${currentQ.prompt}`}
               question={currentQ}
-              questionNumber={currentIdx + 1}
-              total={TOTAL_QUESTIONS}
+              questionNumber={questionCount + 1}
+              total={null}
             />
           </AnimatePresence>
         </div>
 
-        {/* Feedback overlay */}
+        {/* Feedback */}
         <AnimatePresence>
           {phase === 'feedback' && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               className={`mb-4 rounded-2xl px-4 py-3 text-center ${
                 isCorrect
@@ -184,8 +160,8 @@ export default function Drill() {
                   : 'bg-red-500/10 border border-red-500/30'
               }`}
             >
-              <p className={`font-grotesk font-bold text-lg ${isCorrect ? 'text-emerald-400' : 'text-red-400'}`}>
-                {isCorrect ? '✓ Correct!' : `✗ Answer: ${currentQ.correct_answer}`}
+              <p className={`font-grotesk font-bold text-base ${isCorrect ? 'text-emerald-400' : 'text-red-400'}`}>
+                {isCorrect ? '✓ Correct' : `✗ Answer: ${currentQ.correct_answer}`}
               </p>
             </motion.div>
           )}

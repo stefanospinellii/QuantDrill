@@ -2,9 +2,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Lock, Check } from 'lucide-react';
 
 const options = [
-  { key: 'easy', label: 'Easy', desc: '15 second timer · Warm-up pace' },
-  { key: 'medium', label: 'Medium', desc: '12 second timer · Default mode' },
-  { key: 'hard', label: 'Hard', desc: '8 second timer · Elite speed drills', premium: true },
+  { key: 'easy',   label: 'Easy',   desc: 'Beginner-friendly · simpler calculations' },
+  { key: 'medium', label: 'Medium', desc: 'Standard consulting / GMAT level' },
+  { key: 'hard',   label: 'Hard',   desc: 'Advanced mental math · complex reasoning', premium: true },
 ];
 
 export default function DifficultySheet({ open, value, onChange, onClose }) {

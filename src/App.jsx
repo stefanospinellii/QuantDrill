@@ -10,6 +10,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Layout from '@/components/Layout';
 import Home from '@/pages/Home';
 import Drill from '@/pages/Drill';
+import SessionBuilder from '@/pages/SessionBuilder';
 import Results from '@/pages/Results';
 import Progress from '@/pages/Progress';
 import Badges from '@/pages/Badges';
@@ -44,6 +45,7 @@ const AuthenticatedApp = () => {
           <Route path="/progress" element={<Progress />} />
           <Route path="/badges" element={<Badges />} />
         </Route>
+        <Route path="/session" element={<PageTransition><SessionBuilder /></PageTransition>} />
         <Route path="/drill" element={<PageTransition><Drill /></PageTransition>} />
         <Route path="/results" element={<PageTransition><Results /></PageTransition>} />
         <Route path="/paywall" element={<PageTransition><Paywall /></PageTransition>} />

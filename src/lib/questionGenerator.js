@@ -350,31 +350,47 @@ export function generateSession(difficulty = 'medium', count = 10, category = 'd
   return Array.from({ length: count }, () => generateQuestion(difficulty, category));
 }
 
+/** Score based on accuracy + difficulty, no speed pressure */
+export function calculateSessionScore(results, difficulty) {
+  if (!results.length) return 0;
+  const multiplier = { easy: 0.85, medium: 1.0, hard: 1.2 }[difficulty] ?? 1.0;
+  const accuracy = results.filter(r => r.correct).length / results.length;
+  return Math.min(100, Math.round(accuracy * 100 * multiplier));
+}
+
+/** Keep old name for any legacy callers */
 export function calculateScore(results, difficulty) {
-  const multiplier = { easy: 0.8, medium: 1.0, hard: 1.3 }[difficulty];
-  let baseScore = 0;
-  results.forEach(r => {
-    if (r.correct) {
-      const speedBonus = Math.max(0, 1 - r.timeTaken / r.timeLimit);
-      baseScore += 8 + speedBonus * 2;
-    }
-  });
-  return Math.min(100, Math.round(baseScore * multiplier));
+  return calculateSessionScore(results, difficulty);
 }
 
 export function getSpeedRating(avgTime, difficulty) {
   const thresholds = {
-    easy:   { lightning: 3,  fast: 6,  average: 10 },
-    medium: { lightning: 4,  fast: 8,  average: 12 },
-    hard:   { lightning: 5,  fast: 10, average: 14 },
+    easy:   { elite: 4,  fast: 8,  average: 14 },
+    medium: { elite: 6,  fast: 11, average: 18 },
+    hard:   { elite: 8,  fast: 14, average: 22 },
   };
-  const t = thresholds[difficulty];
-  if (avgTime <= t.lightning) return 'Lightning ⚡';
-  if (avgTime <= t.fast)      return 'Fast 🔥';
-  if (avgTime <= t.average)   return 'Average';
-  return 'Slow 🐢';
+  const t = thresholds[difficulty] || thresholds.medium;
+  if (avgTime <= t.elite)   return 'Elite ⚡';
+  if (avgTime <= t.fast)    return 'Fast 🔥';
+  if (avgTime <= t.average) return 'Average';
+  return 'Developing';
 }
 
+/**
+ * Returns the % of candidates the user is faster than,
+ * based on average response time benchmarks per difficulty.
+ * Reference median times: easy=10s, medium=14s, hard=20s
+ */
+export function getSpeedPercentile(avgTime, difficulty) {
+  const medians = { easy: 10, medium: 14, hard: 20 };
+  const median = medians[difficulty] || 14;
+  // Gaussian-like approximation: 1 SD = 4s
+  const z = (median - avgTime) / 4;
+  const pct = Math.round(50 + 45 * Math.tanh(z));
+  return Math.max(5, Math.min(99, pct));
+}
+
+/** Legacy — kept for backward compat */
 export function getPercentile(score, difficulty) {
   const base = { easy: 60, medium: 72, hard: 85 }[difficulty];
   if (score >= 90) return Math.min(99, base + 25);

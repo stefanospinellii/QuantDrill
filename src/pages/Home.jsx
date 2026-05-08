@@ -132,7 +132,7 @@ export default function Home() {
         {/* Big CTA */}
         {drillAllowed ? (
           <button
-            onClick={() => navigate(`/drill?difficulty=${difficulty}&category=daily`)}
+            onClick={() => navigate(`/session?difficulty=${difficulty}&category=daily`)}
             className="w-full bg-primary text-primary-foreground font-grotesk font-bold text-lg py-5 rounded-2xl glow-purple transition-all duration-200 active:scale-95 flex items-center justify-center gap-3 no-select"
           >
             <Zap size={22} />
@@ -151,10 +151,10 @@ export default function Home() {
         )}
         <p className="text-center text-xs text-muted-foreground mt-2.5">
           {isPremium
-            ? '10 questions · mixed categories · ~3 min'
+            ? 'Choose category, difficulty & duration'
             : drillAllowed
-              ? `${remaining} of ${FREE_DAILY_LIMIT} free drills remaining today`
-              : 'Upgrade to drill without limits'
+              ? `${remaining} of ${FREE_DAILY_LIMIT} free sessions today`
+              : 'Upgrade to train without limits'
           }
         </p>
       </motion.div>
