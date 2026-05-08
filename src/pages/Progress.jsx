@@ -2,11 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { Flame, TrendingUp, Zap, Target } from 'lucide-react';
+import { Flame, TrendingUp, Zap, Target, Clock, Lock } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 import { CATEGORY_LABELS } from '@/lib/badges';
+import { useNavigate } from 'react-router-dom';
 
 const CATEGORIES = ['mental_math', 'percentages_growth', 'business_math', 'market_sizing', 'gmat_quant'];
 
@@ -14,6 +15,7 @@ export default function Progress() {
   const [sessions, setSessions] = useState([]);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const load = useCallback(async () => {
     try {
@@ -30,6 +32,8 @@ export default function Progress() {
   useEffect(() => { load(); }, [load]);
 
   const { containerRef, pullDistance, isRefreshing, handlers } = usePullToRefresh(load);
+
+  const isPremium = user?.is_premium === true;
 
   // Last 7 days chart
   const last7 = Array.from({ length: 7 }, (_, i) => {
@@ -52,8 +56,21 @@ export default function Progress() {
     const avgAcc = catSessions.length
       ? Math.round(catSessions.reduce((s, r) => s + (r.accuracy || 0), 0) / catSessions.length)
       : null;
+    const avgSpeed = catSessions.length
+      ? parseFloat((catSessions.reduce((s, r) => s + (r.avg_time || 0), 0) / catSessions.length).toFixed(1))
+      : null;
     const best = catSessions.length ? Math.max(...catSessions.map(s => s.score)) : null;
-    return { cat, count: catSessions.length, avgAcc, best };
+
+    // Improvement: compare first 3 vs last 3 sessions
+    let improvement = null;
+    if (catSessions.length >= 6) {
+      const sorted = [...catSessions].sort((a, b) => a.date > b.date ? 1 : -1);
+      const first3 = sorted.slice(0, 3).reduce((s, r) => s + r.score, 0) / 3;
+      const last3 = sorted.slice(-3).reduce((s, r) => s + r.score, 0) / 3;
+      improvement = Math.round(last3 - first3);
+    }
+
+    return { cat, count: catSessions.length, avgAcc, avgSpeed, best, improvement };
   }).filter(c => c.count > 0);
 
   const strongest = catStats.length ? catStats.reduce((a, b) => (b.best || 0) > (a.best || 0) ? b : a) : null;
@@ -124,17 +141,57 @@ export default function Progress() {
       {catStats.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }} className="mb-6">
           <p className="text-xs font-medium text-muted-foreground tracking-widest uppercase mb-3">By Category</p>
-          <div className="space-y-2">
-            {catStats.map(({ cat, count, avgAcc, best }) => (
-              <div key={cat} className="bg-surface-2 border border-border rounded-2xl px-4 py-3 flex items-center justify-between">
-                <div>
+          <div className="space-y-2.5">
+            {catStats.map(({ cat, count, avgAcc, avgSpeed, best, improvement }) => (
+              <div key={cat} className="bg-surface-2 border border-border rounded-2xl px-4 py-3.5">
+                <div className="flex items-center justify-between mb-2">
                   <p className="text-sm font-semibold text-foreground">{CATEGORY_LABELS[cat]}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{count} drill{count !== 1 ? 's' : ''}{avgAcc !== null ? ` · ${avgAcc}% avg acc` : ''}</p>
+                  <span className="text-2xl font-grotesk font-black tabular-nums text-neon-purple">{best ?? '—'}</span>
                 </div>
-                <span className="text-xl font-grotesk font-black tabular-nums text-neon-purple">{best ?? '—'}</span>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <p className="text-xs text-muted-foreground">{count} drill{count !== 1 ? 's' : ''}</p>
+                  {avgAcc !== null && (
+                    <div className="flex items-center gap-1">
+                      <Target size={10} className="text-muted-foreground" />
+                      <p className="text-xs text-muted-foreground">{avgAcc}% acc</p>
+                    </div>
+                  )}
+                  {avgSpeed !== null && isPremium && (
+                    <div className="flex items-center gap-1">
+                      <Clock size={10} className="text-muted-foreground" />
+                      <p className="text-xs text-muted-foreground">{avgSpeed}s avg</p>
+                    </div>
+                  )}
+                  {improvement !== null && isPremium && (
+                    <p className={`text-xs font-semibold ${improvement >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {improvement >= 0 ? '+' : ''}{improvement} trend
+                    </p>
+                  )}
+                </div>
               </div>
             ))}
           </div>
+        </motion.div>
+      )}
+
+      {/* Advanced Analytics upsell for free users */}
+      {!isPremium && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
+          <button
+            onClick={() => navigate('/paywall')}
+            className="w-full bg-surface-2 border border-primary/20 rounded-2xl px-4 py-4 flex items-center justify-between mb-6 no-select"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Lock size={14} className="text-primary" />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-semibold text-foreground">Advanced Analytics</p>
+                <p className="text-xs text-muted-foreground">Speed trends, improvement tracking</p>
+              </div>
+            </div>
+            <span className="text-xs font-bold text-primary">Unlock →</span>
+          </button>
         </motion.div>
       )}
 

@@ -1,21 +1,62 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Check, Zap, BarChart2, Award } from 'lucide-react';
-import { Infinity as InfinityIcon } from 'lucide-react';
+import { Check, Zap, BarChart2, Award, Infinity as InfinityIcon, Lock } from 'lucide-react';
 import MobileHeader from '@/components/MobileHeader';
 
 const PLANS = [
-  { key: 'monthly',  label: 'Monthly',  price: '$9.99',  period: '/mo',   badge: null },
-  { key: 'yearly',   label: 'Yearly',   price: '$59.99', period: '/yr',   badge: 'Best Value' },
-  { key: 'lifetime', label: 'Lifetime', price: '$149',   period: 'once',  badge: null },
+  {
+    key: 'monthly',
+    label: 'Monthly',
+    price: '$9.99',
+    period: '/mo',
+    badge: null,
+    perDay: '$0.33/day',
+  },
+  {
+    key: 'yearly',
+    label: 'Yearly',
+    price: '$59.99',
+    period: '/yr',
+    badge: 'Best Value',
+    perDay: '$0.16/day · Save 50%',
+  },
+  {
+    key: 'lifetime',
+    label: 'Lifetime',
+    price: '$149',
+    period: 'once',
+    badge: null,
+    perDay: 'Pay once, train forever',
+  },
 ];
 
 const PREMIUM_FEATURES = [
-  { icon: <Zap size={16} className="text-neon-cyan" />,        text: 'Unlimited daily drills' },
-  { icon: <Zap size={16} className="text-neon-purple" />,      text: 'All 5 categories + Hard mode' },
-  { icon: <BarChart2 size={16} className="text-neon-orange" />, text: 'Advanced performance analytics' },
-  { icon: <Award size={16} className="text-yellow-400" />,     text: 'Full achievement system' },
+  {
+    icon: <InfinityIcon size={15} className="text-neon-cyan" />,
+    label: 'Train Without Limits',
+    sub: 'Unlimited daily drills across all categories',
+  },
+  {
+    icon: <Zap size={15} className="text-neon-purple" />,
+    label: 'All Categories + Hard Mode',
+    sub: 'Mental Math, Business Math, GMAT Quant & more',
+  },
+  {
+    icon: <BarChart2 size={15} className="text-neon-orange" />,
+    label: 'Advanced Performance Analytics',
+    sub: 'Speed trends, improvement tracking, percentiles',
+  },
+  {
+    icon: <Award size={15} className="text-yellow-400" />,
+    label: 'Full Achievement System',
+    sub: '22 badges across 6 performance categories',
+  },
+  {
+    icon: <Lock size={15} className="text-emerald-400" />,
+    label: 'Detailed Performance Insights',
+    sub: 'Category breakdowns and benchmarking data',
+  },
 ];
 
 export default function Paywall({ onClose }) {
@@ -31,20 +72,22 @@ export default function Paywall({ onClose }) {
     <div className="min-h-screen bg-background flex flex-col">
       <MobileHeader title="" onBack={handleClose} />
 
-      <div className="flex-1 flex flex-col px-5 pt-2 pb-8 overflow-y-auto">
+      <div className="flex-1 flex flex-col px-5 pt-4 pb-8 overflow-y-auto">
         {/* Hero */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-8"
         >
-          <div className="text-5xl mb-4">🏋️</div>
+          <div className="w-16 h-16 rounded-3xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-4 text-3xl">
+            🏋️
+          </div>
           <h1 className="text-2xl font-grotesk font-black text-foreground leading-tight mb-2">
             Unlock Elite<br />
             <span className="text-neon-purple">Quant Training</span>
           </h1>
-          <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-            Train without limits. Built for GMAT, consulting, and finance candidates who take performance seriously.
+          <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed">
+            Built for GMAT, consulting, and finance candidates who take performance seriously.
           </p>
         </motion.div>
 
@@ -53,14 +96,17 @@ export default function Paywall({ onClose }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1 }}
-          className="bg-surface-2 border border-border rounded-2xl px-4 py-4 mb-6 space-y-3"
+          className="bg-surface-2 border border-border rounded-2xl px-4 py-4 mb-6 space-y-3.5"
         >
           {PREMIUM_FEATURES.map((f, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-surface-3 flex items-center justify-center shrink-0">
+            <div key={i} className="flex items-start gap-3">
+              <div className="w-7 h-7 rounded-lg bg-surface-3 flex items-center justify-center shrink-0 mt-0.5">
                 {f.icon}
               </div>
-              <span className="text-sm font-medium text-foreground">{f.text}</span>
+              <div>
+                <p className="text-sm font-semibold text-foreground leading-tight">{f.label}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{f.sub}</p>
+              </div>
             </div>
           ))}
         </motion.div>
@@ -72,6 +118,7 @@ export default function Paywall({ onClose }) {
           transition={{ delay: 0.18 }}
           className="space-y-2.5 mb-6"
         >
+          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-3">Choose Your Plan</p>
           {PLANS.map(plan => (
             <button
               key={plan.key}
@@ -83,19 +130,24 @@ export default function Paywall({ onClose }) {
               }`}
             >
               <div className="flex items-center gap-3">
-                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${
                   selected === plan.key ? 'border-primary bg-primary' : 'border-border'
                 }`}>
                   {selected === plan.key && <Check size={11} className="text-white" />}
                 </div>
-                <span className="text-sm font-semibold text-foreground">{plan.label}</span>
-                {plan.badge && (
-                  <span className="text-[10px] font-bold text-neon-orange bg-orange-500/10 border border-orange-500/20 px-2 py-0.5 rounded-full uppercase tracking-wide">
-                    {plan.badge}
-                  </span>
-                )}
+                <div className="text-left">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-foreground">{plan.label}</span>
+                    {plan.badge && (
+                      <span className="text-[9px] font-bold text-neon-orange bg-orange-500/10 border border-orange-500/20 px-2 py-0.5 rounded-full uppercase tracking-wide">
+                        {plan.badge}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{plan.perDay}</p>
+                </div>
               </div>
-              <div className="text-right">
+              <div className="text-right shrink-0">
                 <span className="text-base font-grotesk font-bold text-foreground">{plan.price}</span>
                 <span className="text-xs text-muted-foreground ml-1">{plan.period}</span>
               </div>

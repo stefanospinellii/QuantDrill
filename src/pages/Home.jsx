@@ -136,7 +136,7 @@ export default function Home() {
             className="w-full bg-primary text-primary-foreground font-grotesk font-bold text-lg py-5 rounded-2xl glow-purple transition-all duration-200 active:scale-95 flex items-center justify-center gap-3 no-select"
           >
             <Zap size={22} />
-            {completedToday ? 'Train Again' : 'Start Daily Drill'}
+            {completedToday ? 'Train Now' : 'Start Daily Drill'}
             <ChevronRight size={20} />
           </button>
         ) : (
