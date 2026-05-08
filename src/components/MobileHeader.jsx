@@ -25,8 +25,8 @@ export default function MobileHeader({ title, onBack }) {
       {/* Back button — spans full height so entire left area is tappable */}
       <button
         onClick={handleBack}
-        className="absolute inset-y-0 left-0 flex items-end gap-0.5 px-3 pb-3 text-primary no-select active:opacity-60 transition-opacity"
-        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+        className="absolute inset-y-0 left-0 flex items-end gap-0.5 px-5 pb-3 text-primary no-select active:opacity-60 transition-opacity"
+        style={{ paddingTop: 'env(safe-area-inset-top, 0px)', minWidth: '80px' }}
       >
         <ChevronLeft size={22} strokeWidth={2.5} />
         <span className="text-sm font-medium">Back</span>
