@@ -1,17 +1,34 @@
 import { motion } from 'framer-motion';
-import { Zap, TrendingUp, DivideSquare, BarChart2, Globe } from 'lucide-react';
+import { Zap, TrendingUp, DivideSquare, BarChart2, Globe, Target, Percent, Calculator, Scale, PieChart } from 'lucide-react';
 
-const typeConfig = {
-  percentage_change: { label: 'Percentage Change', icon: TrendingUp, color: 'text-neon-purple' },
-  multiplication: { label: 'Multiplication', icon: Zap, color: 'text-neon-cyan' },
-  division: { label: 'Division', icon: DivideSquare, color: 'text-neon-orange' },
-  growth_rate: { label: 'Growth Rate', icon: TrendingUp, color: 'text-neon-purple' },
-  business_math: { label: 'Business Math', icon: BarChart2, color: 'text-neon-cyan' },
-  market_sizing: { label: 'Market Sizing', icon: Globe, color: 'text-neon-orange' },
+const subtypeConfig = {
+  // Mental math
+  multiplication:       { label: 'Multiplication',      icon: Zap,          color: 'text-neon-cyan' },
+  division:             { label: 'Division',             icon: DivideSquare, color: 'text-neon-orange' },
+  estimation:           { label: 'Estimation',           icon: Calculator,   color: 'text-neon-purple' },
+  // Percentages & growth
+  percentage_change:    { label: 'Percentage Change',    icon: TrendingUp,   color: 'text-neon-purple' },
+  percentage_of_total:  { label: '% of Total',           icon: Percent,      color: 'text-neon-cyan' },
+  percent_of_percent:   { label: '% of %',               icon: Percent,      color: 'text-neon-orange' },
+  growth_rate:          { label: 'Growth Rate',          icon: TrendingUp,   color: 'text-emerald-400' },
+  // Business math
+  profit_margin:        { label: 'Profit Margin',        icon: PieChart,     color: 'text-neon-cyan' },
+  breakeven:            { label: 'Breakeven',            icon: Scale,        color: 'text-neon-orange' },
+  revenue:              { label: 'Revenue',              icon: BarChart2,    color: 'text-neon-purple' },
+  contribution_margin:  { label: 'Contribution Margin',  icon: PieChart,     color: 'text-emerald-400' },
+  // Market sizing
+  market_sizing:        { label: 'Market Sizing',        icon: Globe,        color: 'text-neon-orange' },
+  // GMAT
+  arithmetic:           { label: 'Arithmetic',           icon: Calculator,   color: 'text-neon-cyan' },
+  algebra:              { label: 'Algebra',              icon: Target,       color: 'text-neon-purple' },
+  ratio:                { label: 'Ratio & Proportion',   icon: Scale,        color: 'text-neon-orange' },
+  word_problem:         { label: 'Word Problem',         icon: BarChart2,    color: 'text-emerald-400' },
 };
 
+const fallback = { label: 'Mental Math', icon: Zap, color: 'text-neon-cyan' };
+
 export default function QuestionCard({ question, questionNumber, total }) {
-  const cfg = typeConfig[question.type] || typeConfig.multiplication;
+  const cfg = subtypeConfig[question.subtype] || fallback;
   const Icon = cfg.icon;
 
   return (

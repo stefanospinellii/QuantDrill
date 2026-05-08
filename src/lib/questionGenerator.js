@@ -13,6 +13,7 @@ function multiplication(difficulty) {
   else { a = rand(25, 99); b = rand(11, 19); }
   return {
     type: 'mental_math',
+    subtype: 'multiplication',
     prompt: `${a} × ${b} = ?`,
     correct_answer: a * b,
     difficulty,
@@ -27,6 +28,7 @@ function division(difficulty) {
   const a = b * result;
   return {
     type: 'mental_math',
+    subtype: 'division',
     prompt: `${a} ÷ ${b} = ?`,
     correct_answer: result,
     difficulty,
@@ -45,7 +47,7 @@ function approximation(difficulty) {
     () => { const pct = pick([12, 17, 23, 37]); const base = rand(3, 9) * 100; return { prompt: `${pct}% of ${base} ≈ ?`, correct_answer: Math.round(base * pct / 100) }; },
   ];
   const s = pick(scenarios)();
-  return { type: 'mental_math', difficulty, ...s };
+  return { type: 'mental_math', subtype: 'estimation', difficulty, ...s };
 }
 
 // ─── PERCENTAGES & GROWTH ─────────────────────────────────────────────────────
@@ -70,6 +72,7 @@ function percentageChange(difficulty) {
   ];
   return {
     type: 'percentages_growth',
+    subtype: 'percentage_change',
     prompt: pick(prompts),
     correct_answer: result,
     difficulty,
@@ -95,6 +98,7 @@ function percentageOfTotal(difficulty) {
   const ans = q.includes('Gross profit') ? total - amount : amount;
   return {
     type: 'percentages_growth',
+    subtype: 'percentage_of_total',
     prompt: q,
     correct_answer: ans,
     difficulty,
@@ -116,8 +120,33 @@ function cagrIntuition(difficulty) {
   const yearLabel = years === 1 ? 'year' : 'years';
   return {
     type: 'percentages_growth',
+    subtype: 'growth_rate',
     prompt: `Revenue is $${base}M, growing at ${rate}% per year. Value after ${years} ${yearLabel}? ($M)`,
     correct_answer: result,
+    difficulty,
+  };
+}
+
+function percentOfPercent(difficulty) {
+  const configs = {
+    easy:   [[10, 50], [20, 50], [25, 40], [50, 20]],
+    medium: [[15, 60], [20, 35], [30, 40], [25, 80], [12, 50]],
+    hard:   [[17, 45], [22, 65], [35, 28], [18, 72], [42, 33]],
+  };
+  const [a, b] = pick(configs[difficulty]);
+  const result = Math.round(a * b / 100);
+  const scenarios = [
+    { prompt: `${a}% of ${b}% = ? (as a percentage)`, answer: result },
+    { prompt: `Revenue grows ${a}% and margin is ${b}%. What % of original revenue is the contribution?`, answer: result },
+    { prompt: `${a}% of customers convert, and ${b}% of those upgrade. What % of total customers upgrade?`, answer: result },
+    { prompt: `${a}% market share, ${b}% of that is premium tier. Premium as % of total market?`, answer: result },
+  ];
+  const s = pick(scenarios);
+  return {
+    type: 'percentages_growth',
+    subtype: 'percent_of_percent',
+    prompt: s.prompt,
+    correct_answer: s.answer,
     difficulty,
   };
 }
@@ -135,6 +164,7 @@ function profitMargin(difficulty) {
   ];
   return {
     type: 'business_math',
+    subtype: 'profit_margin',
     prompt: pick(prompts),
     correct_answer: profit,
     difficulty,
@@ -150,6 +180,7 @@ function breakevenUnits(difficulty) {
   const units = Math.round(fixedCosts / contribution);
   return {
     type: 'business_math',
+    subtype: 'breakeven',
     prompt: `Fixed costs = $${fixedCosts.toLocaleString()}, Price = $${price}, COGS/unit = $${cogs}. Breakeven units?`,
     correct_answer: units,
     difficulty,
@@ -167,6 +198,7 @@ function revenueCalc(difficulty) {
   ];
   return {
     type: 'business_math',
+    subtype: 'revenue',
     prompt: pick(contexts),
     correct_answer: revenue,
     difficulty,
@@ -182,6 +214,7 @@ function contributionMargin(difficulty) {
   const type = pick(['value', 'percent']);
   return {
     type: 'business_math',
+    subtype: 'contribution_margin',
     prompt: type === 'value'
       ? `Selling price = $${price}, Variable cost = $${vc}. Contribution margin per unit?`
       : `Selling price = $${price}, Variable cost = $${vc}. Contribution margin %? (nearest whole)`,
@@ -251,7 +284,7 @@ function marketSizingFixed(difficulty) {
     { prompt: 'School: 500 students, textbooks cost $120 each, replaced every 3 yrs. Annual textbook spend? ($K)', answer: Math.round(500 * 120 / 3 / 1000) },
   ];
   const s = pick(scenarios);
-  return { type: 'market_sizing', prompt: s.prompt, correct_answer: s.answer, difficulty };
+  return { type: 'market_sizing', subtype: 'market_sizing', prompt: s.prompt, correct_answer: s.answer, difficulty };
 }
 
 // ─── GMAT QUANT ───────────────────────────────────────────────────────────────
@@ -276,7 +309,7 @@ function gmatArithmetic(difficulty) {
     () => { const x = rand(3, 9); return { prompt: `√${x*x} + √${(x+1)*(x+1)} = ?`, answer: x + (x+1) }; },
   ];
   const s = pick(scenarios)();
-  return { type: 'gmat_quant', prompt: s.prompt, correct_answer: s.answer, difficulty };
+  return { type: 'gmat_quant', subtype: 'arithmetic', prompt: s.prompt, correct_answer: s.answer, difficulty };
 }
 
 function gmatAlgebra(difficulty) {
@@ -291,7 +324,7 @@ function gmatAlgebra(difficulty) {
     () => { const a = rand(2,6); const k = rand(3,8); return { prompt: `If ${a}x = ${a*k} and y = 2x − 3, what is y?`, answer: 2*k - 3 }; },
   ];
   const s = pick(scenarios)();
-  return { type: 'gmat_quant', prompt: s.prompt, correct_answer: s.answer, difficulty };
+  return { type: 'gmat_quant', subtype: 'algebra', prompt: s.prompt, correct_answer: s.answer, difficulty };
 }
 
 function gmatRatio(difficulty) {
@@ -305,7 +338,7 @@ function gmatRatio(difficulty) {
     () => { const a = rand(3,7); const b = rand(2,6); const profit = (a+b) * rand(8,20); return { prompt: `Two partners split profit ${a}:${b}. Total profit = $${profit}K. Larger share? ($K)`, answer: Math.round(profit * Math.max(a,b) / (a+b)) }; },
   ];
   const s = pick(scenarios)();
-  return { type: 'gmat_quant', prompt: s.prompt, correct_answer: s.answer, difficulty };
+  return { type: 'gmat_quant', subtype: 'ratio', prompt: s.prompt, correct_answer: s.answer, difficulty };
 }
 
 function gmatWordProblem(difficulty) {
@@ -320,7 +353,7 @@ function gmatWordProblem(difficulty) {
     () => { const a = rand(3,8); const b = rand(3,8); if (a===b) return gmatWordProblem(difficulty); const lcmAB = lcm(a,b); return { prompt: `Pipe A fills tank in ${a}h, Pipe B in ${b}h. Together, hours to fill? (round to 1 decimal)`, answer: Math.round((a*b/(a+b))*10)/10 }; },
   ];
   const s = pick(scenarios)();
-  return { type: 'gmat_quant', prompt: s.prompt, correct_answer: s.answer, difficulty };
+  return { type: 'gmat_quant', subtype: 'word_problem', prompt: s.prompt, correct_answer: s.answer, difficulty };
 }
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
@@ -333,23 +366,25 @@ function factorial(n) { let r = 1; for (let i = 2; i <= n; i++) r *= i; return r
 
 const CATEGORY_GENERATORS = {
   mental_math:        [multiplication, division, approximation],
-  percentages_growth: [percentageChange, percentageOfTotal, cagrIntuition],
+  percentages_growth: [percentageChange, percentageOfTotal, cagrIntuition, percentOfPercent],
   business_math:      [profitMargin, breakevenUnits, revenueCalc, contributionMargin],
   market_sizing:      [marketSizingFixed],
   gmat_quant:         [gmatQuant],
-  // Daily mix: weighted so gmat/market_sizing appear but are less frequent
+  // Daily mix: weighted across all skills
   daily: [
     multiplication, multiplication,
     division, division,
     approximation,
     percentageChange, percentageChange,
     percentageOfTotal,
+    percentOfPercent,
     cagrIntuition,
-    profitMargin, profitMargin,
+    profitMargin,
+    breakevenUnits,
     revenueCalc,
     contributionMargin,
-    marketSizingFixed,  // a taste of market sizing
-    gmatArithmetic,     // a taste of GMAT/GRE
+    marketSizingFixed,
+    gmatArithmetic,
     gmatRatio,
   ],
 };

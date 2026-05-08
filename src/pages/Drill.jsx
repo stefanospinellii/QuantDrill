@@ -6,7 +6,6 @@ import { generateQuestion, checkAnswer, calculateSessionScore, getSpeedRating, g
 import { calculateNewStreak, getTodayDate } from '@/lib/streakUtils';
 import GlobalTimer from '@/components/drill/GlobalTimer';
 import QuestionCard from '@/components/drill/QuestionCard';
-import { ArrowRight } from 'lucide-react';
 import MobileHeader from '@/components/MobileHeader';
 
 export default function Drill() {
@@ -19,13 +18,11 @@ export default function Drill() {
 
   const [currentQ, setCurrentQ] = useState(() => generateQuestion(difficulty, category));
   const [answer, setAnswer] = useState('');
-  const [results, setResults] = useState([]);
-  const [phase, setPhase] = useState('question'); // question | feedback
-  const [isCorrect, setIsCorrect] = useState(null);
   const [questionCount, setQuestionCount] = useState(0);
   const [startTime, setStartTime] = useState(Date.now());
   const [shake, setShake] = useState(false);
   const [sessionActive, setSessionActive] = useState(true);
+  const [flash, setFlash] = useState(null); // 'correct' | 'wrong' | null
   const inputRef = useRef(null);
   const resultsRef = useRef([]);
 
@@ -33,50 +30,21 @@ export default function Drill() {
     setTimeout(() => inputRef.current?.focus(), 100);
   }, []);
 
+  // Focus input on new question
   useEffect(() => {
-    if (phase === 'question') {
-      setStartTime(Date.now());
-      setAnswer('');
-      setTimeout(() => inputRef.current?.focus(), 80);
-    }
-  }, [phase, currentQ]);
+    setStartTime(Date.now());
+    setAnswer('');
+    setTimeout(() => inputRef.current?.focus(), 50);
+  }, [currentQ]);
 
-  const nextQuestion = useCallback((newResults) => {
+  const advanceToNext = useCallback((newResults) => {
     resultsRef.current = newResults;
     setCurrentQ(generateQuestion(difficulty, category));
     setQuestionCount(c => c + 1);
-    setPhase('question');
+    setFlash(null);
   }, [difficulty, category]);
 
-  const submitAnswer = useCallback((userAnswer) => {
-    if (phase !== 'question') return;
-    const timeTaken = (Date.now() - startTime) / 1000;
-    const correct = checkAnswer(userAnswer, currentQ.correct_answer);
-    setIsCorrect(correct);
-    setPhase('feedback');
-
-    const result = { correct, timeTaken, answer: userAnswer, correctAnswer: currentQ.correct_answer };
-    const newResults = [...resultsRef.current, result];
-
-    setTimeout(() => nextQuestion(newResults), 700);
-  }, [phase, startTime, currentQ, nextQuestion]);
-
-  const handleTimerExpire = useCallback(() => {
-    setSessionActive(false);
-    finishSession(resultsRef.current);
-  }, []);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!answer.trim()) {
-      setShake(true);
-      setTimeout(() => setShake(false), 500);
-      return;
-    }
-    submitAnswer(answer);
-  };
-
-  const finishSession = async (finalResults) => {
+  const finishSession = useCallback(async (finalResults) => {
     if (!finalResults.length) {
       navigate('/');
       return;
@@ -108,9 +76,60 @@ export default function Drill() {
         const user = await base44.auth.me();
         const newStreak = calculateNewStreak(user.streak_count || 0, user.last_active_date);
         await base44.auth.updateMe({ streak_count: newStreak, last_active_date: today });
-      } catch (e) {}
+      } catch (_e) { /* fire and forget */ }
     })();
+  }, [difficulty, category, durationMinutes, navigate]);
+
+  const handleTimerExpire = useCallback(() => {
+    setSessionActive(false);
+    finishSession(resultsRef.current);
+  }, [finishSession]);
+
+  // Auto-check on every keystroke
+  const handleChange = (e) => {
+    const val = e.target.value;
+    setAnswer(val);
+
+    if (!val.trim()) return;
+
+    const correct = checkAnswer(val, currentQ.correct_answer);
+    if (correct) {
+      // Correct → record + instant advance
+      const timeTaken = (Date.now() - startTime) / 1000;
+      const result = { correct: true, timeTaken, answer: val, correctAnswer: currentQ.correct_answer };
+      const newResults = [...resultsRef.current, result];
+      setFlash('correct');
+      // Tiny delay so user sees the green flash
+      setTimeout(() => advanceToNext(newResults), 120);
+    }
   };
+
+  // Manual submit for wrong answers — user can press Enter to skip
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!answer.trim()) {
+      setShake(true);
+      setTimeout(() => setShake(false), 500);
+      return;
+    }
+
+    const correct = checkAnswer(answer, currentQ.correct_answer);
+    if (correct) return; // already handled by onChange
+
+    // Wrong answer — flash red, record, and advance
+    const timeTaken = (Date.now() - startTime) / 1000;
+    const result = { correct: false, timeTaken, answer, correctAnswer: currentQ.correct_answer };
+    const newResults = [...resultsRef.current, result];
+    setFlash('wrong');
+    setTimeout(() => advanceToNext(newResults), 600);
+  };
+
+  // Border color based on flash
+  const borderClass = flash === 'correct'
+    ? 'border-emerald-500 bg-emerald-500/5'
+    : flash === 'wrong'
+    ? 'border-red-500 bg-red-500/5'
+    : 'border-border bg-surface-2';
 
   return (
     <div className="min-h-screen bg-background flex flex-col pb-6">
@@ -147,48 +166,39 @@ export default function Drill() {
           </AnimatePresence>
         </div>
 
-        {/* Feedback */}
+        {/* Wrong-answer flash banner */}
         <AnimatePresence>
-          {phase === 'feedback' && (
+          {flash === 'wrong' && (
             <motion.div
               initial={{ opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className={`mb-4 rounded-2xl px-4 py-3 text-center ${
-                isCorrect
-                  ? 'bg-emerald-500/10 border border-emerald-500/30'
-                  : 'bg-red-500/10 border border-red-500/30'
-              }`}
+              className="mb-4 rounded-2xl px-4 py-3 text-center bg-red-500/10 border border-red-500/30"
             >
-              <p className={`font-grotesk font-bold text-base ${isCorrect ? 'text-emerald-400' : 'text-red-400'}`}>
-                {isCorrect ? '✓ Correct' : `✗ Answer: ${currentQ.correct_answer}`}
+              <p className="font-grotesk font-bold text-base text-red-400">
+                ✗ Answer: {currentQ.correct_answer}
               </p>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Answer input */}
+        {/* Answer input — auto-advances on correct */}
         <form onSubmit={handleSubmit} className="mt-auto">
-          <div className={`relative ${shake ? 'animate-shake' : ''}`}>
+          <div className={`relative transition-colors duration-150 rounded-2xl ${borderClass} ${shake ? 'animate-shake' : ''}`}>
             <input
               ref={inputRef}
               type="number"
               inputMode="numeric"
               value={answer}
-              onChange={e => setAnswer(e.target.value)}
-              disabled={phase === 'feedback'}
-              placeholder="Your answer..."
-              className="w-full bg-surface-2 border border-border rounded-2xl px-5 py-4 text-xl font-grotesk font-semibold text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary transition-colors disabled:opacity-50"
+              onChange={handleChange}
+              placeholder="Type your answer..."
+              autoComplete="off"
+              className="w-full bg-transparent rounded-2xl px-5 py-4 text-xl font-grotesk font-semibold text-foreground placeholder:text-muted-foreground/40 focus:outline-none border-none"
             />
-            <button
-              type="submit"
-              disabled={phase === 'feedback' || !answer.trim()}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-primary rounded-xl flex items-center justify-center disabled:opacity-30 transition-opacity"
-            >
-              <ArrowRight size={18} className="text-primary-foreground" />
-            </button>
           </div>
-          <p className="text-center text-xs text-muted-foreground mt-3">Press Enter or tap → to submit</p>
+          <p className="text-center text-[11px] text-muted-foreground mt-3">
+            Correct → auto-advance · Enter → skip
+          </p>
         </form>
       </div>
     </div>
