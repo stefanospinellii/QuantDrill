@@ -83,7 +83,7 @@ export default function BenchmarkMetrics({ sessions }) {
       <MetricCard
         label="5-Session Accuracy"
         value={`${avgAccuracy}%`}
-        sub={<>Target: <span className="font-bold text-foreground">95%</span> for top-tier firms</>}
+        sub={null}
         progress={accuracyProgress}
         ringColor={accuracyColor}
         delay={0.05}
