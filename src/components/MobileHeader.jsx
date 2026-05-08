@@ -7,8 +7,10 @@ export default function MobileHeader({ title, onBack }) {
   const handleBack = () => {
     if (onBack) {
       onBack();
-    } else {
+    } else if (window.history.length > 1) {
       navigate(-1);
+    } else {
+      navigate('/');
     }
   };
 

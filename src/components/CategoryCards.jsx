@@ -32,14 +32,16 @@ export default function CategoryCards({ difficulty }) {
                 navigate(`/session?difficulty=${difficulty}&category=${cat.key}`);
               }
             }}
-            className={`flex items-center gap-3 bg-surface-2 border border-border rounded-2xl px-3.5 py-3.5 text-left transition-colors active:scale-95 no-select ${
-              cat.premium ? 'opacity-60' : 'hover:border-primary/40'
+            className={`flex items-center gap-3 border rounded-2xl px-3.5 py-3.5 text-left transition-colors active:scale-95 no-select ${
+              cat.premium
+                ? 'bg-surface-1 border-border opacity-50 cursor-default'
+                : 'bg-surface-2 border-border hover:border-primary/40'
             }`}
           >
             <span className="text-xl leading-none">{cat.emoji}</span>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
-                <p className="text-sm font-semibold text-foreground leading-tight truncate">{cat.label}</p>
+                <p className={`text-sm font-semibold leading-tight truncate ${cat.premium ? 'text-muted-foreground' : 'text-foreground'}`}>{cat.label}</p>
                 {cat.premium && <Lock size={10} className="text-neon-orange shrink-0" />}
               </div>
               <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight truncate">
