@@ -2,21 +2,18 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
-import { Flame, Zap, Star, Settings, ChevronDown, ChevronRight, Lock } from 'lucide-react';
+import { Flame, Zap, Star, Settings, ChevronRight, Lock } from 'lucide-react';
 import { hasCompletedTodaysSprint, isStreakAlive } from '@/lib/streakUtils';
 import SettingsModal from '@/components/SettingsModal';
 import DifficultySheet from '@/components/DifficultySheet';
 import CategoryCards from '@/components/CategoryCards';
 import { getDrillAccess, FREE_DAILY_LIMIT } from '@/lib/freemium';
 
-const DIFFICULTY_LABELS = { easy: 'Easy · 15s', medium: 'Medium · 12s', hard: 'Hard · 8s' };
-
 export default function Home() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [difficulty, setDifficulty] = useState('medium');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [diffSheetOpen, setDiffSheetOpen] = useState(false);
 
@@ -117,22 +114,10 @@ export default function Home() {
 
       {/* ── Daily Drill CTA (Primary) ── */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}>
-        {/* Difficulty selector */}
-        <button
-          onClick={() => setDiffSheetOpen(true)}
-          className="w-full flex items-center justify-between bg-surface-2 border border-border rounded-xl px-4 py-2.5 mb-3 no-select hover:border-primary/50 transition-colors"
-        >
-          <span className="text-xs text-muted-foreground uppercase tracking-widest font-medium">Difficulty</span>
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm font-semibold text-foreground">{DIFFICULTY_LABELS[difficulty]}</span>
-            <ChevronDown size={14} className="text-muted-foreground" />
-          </div>
-        </button>
-
         {/* Big CTA */}
         {drillAllowed ? (
           <button
-            onClick={() => navigate(`/session?difficulty=${difficulty}&category=daily`)}
+            onClick={() => setDiffSheetOpen(true)}
             className="w-full bg-primary text-primary-foreground font-grotesk font-bold text-lg py-5 rounded-2xl glow-purple transition-all duration-200 active:scale-95 flex items-center justify-center gap-3 no-select"
           >
             <Zap size={22} />
@@ -151,7 +136,7 @@ export default function Home() {
         )}
         <p className="text-center text-xs text-muted-foreground mt-2.5">
           {isPremium
-            ? 'Choose category, difficulty & duration'
+            ? 'Tap to choose difficulty & duration'
             : drillAllowed
               ? `${remaining} of ${FREE_DAILY_LIMIT} free sessions today`
               : 'Upgrade to train without limits'
@@ -161,16 +146,19 @@ export default function Home() {
 
       {/* ── Focused Practice ── */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.28 }}>
-        <CategoryCards difficulty={difficulty} />
+        <CategoryCards difficulty="medium" />
       </motion.div>
 
       {/* ── Modals ── */}
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <DifficultySheet
         open={diffSheetOpen}
-        value={difficulty}
-        onChange={setDifficulty}
+        value="medium"
+        category="daily"
         onClose={() => setDiffSheetOpen(false)}
+        onStart={({ difficulty, duration, category }) => {
+          navigate(`/drill?difficulty=${difficulty}&category=${category}&duration=${duration}`);
+        }}
       />
     </div>
   );

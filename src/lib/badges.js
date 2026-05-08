@@ -262,7 +262,7 @@ export const CATEGORY_LABELS = {
   percentages_growth: '📈 % & Growth',
   business_math:      '💼 Business Math',
   market_sizing:      '🌍 Market Sizing',
-  gmat_quant:         '🎯 GMAT Quant',
+  gmat_quant:         '🎯 GMAT/GRE Quant',
   daily:              '🔀 Daily Mix',
   general:            '🏅 General',
 };

@@ -6,7 +6,7 @@ const CATEGORIES = [
   { key: 'mental_math',        emoji: '⚡', label: 'Mental Math',       sub: 'Speed arithmetic' },
   { key: 'percentages_growth', emoji: '📈', label: '% & Growth',        sub: 'CAGR, margins, rates' },
   { key: 'business_math',      emoji: '💼', label: 'Business Math',     sub: 'Revenue, breakeven' },
-  { key: 'gmat_quant',         emoji: '🎯', label: 'GMAT Quant',        sub: 'Algebra & reasoning',  premium: true },
+  { key: 'gmat_quant',         emoji: '🎯', label: 'GMAT/GRE Quant',   sub: 'Algebra & reasoning',  premium: true },
   { key: 'market_sizing',      emoji: '🌍', label: 'Market Sizing',     sub: 'Estimation cases',     premium: true },
 ];
 
@@ -29,7 +29,7 @@ export default function CategoryCards({ difficulty }) {
               if (cat.premium) {
                 navigate('/paywall');
               } else {
-                navigate(`/session?difficulty=${difficulty}&category=${cat.key}`);
+                navigate(`/drill?difficulty=${difficulty}&category=${cat.key}&duration=5`);
               }
             }}
             className={`flex items-center gap-3 border rounded-2xl px-3.5 py-3.5 text-left transition-colors active:scale-95 no-select ${

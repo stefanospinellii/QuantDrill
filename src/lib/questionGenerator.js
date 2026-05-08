@@ -337,7 +337,21 @@ const CATEGORY_GENERATORS = {
   business_math:      [profitMargin, breakevenUnits, revenueCalc, contributionMargin],
   market_sizing:      [marketSizingFixed],
   gmat_quant:         [gmatQuant],
-  daily:              [multiplication, division, percentageChange, cagrIntuition, profitMargin, revenueCalc, marketSizingFixed, gmatArithmetic, gmatRatio],
+  // Daily mix: weighted so gmat/market_sizing appear but are less frequent
+  daily: [
+    multiplication, multiplication,
+    division, division,
+    approximation,
+    percentageChange, percentageChange,
+    percentageOfTotal,
+    cagrIntuition,
+    profitMargin, profitMargin,
+    revenueCalc,
+    contributionMargin,
+    marketSizingFixed,  // a taste of market sizing
+    gmatArithmetic,     // a taste of GMAT/GRE
+    gmatRatio,
+  ],
 };
 
 export function generateQuestion(difficulty = 'medium', category = 'daily') {
