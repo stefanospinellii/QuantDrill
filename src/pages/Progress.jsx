@@ -24,10 +24,10 @@ export default function Progress() {
 
   const load = useCallback(async () => {
     try {
-      const [u, s] = await Promise.all([
-        base44.auth.me(),
-        base44.entities.Session.list('-date', 200),
-      ]);
+      const u = await base44.auth.me();
+      const s = u?.email 
+        ? await base44.entities.Session.filter({ created_by: u.email }, '-date', 200)
+        : [];
       setUser(u);
       setSessions(s);
     } catch (e) {}

@@ -2,6 +2,10 @@
   "name": "Session",
   "type": "object",
   "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID of the user who created this session (for multi-tenant isolation)"
+    },
     "date": {
       "type": "string",
       "format": "date",

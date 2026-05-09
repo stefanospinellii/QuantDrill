@@ -32,10 +32,10 @@ export default function Badges() {
   useEffect(() => {
     async function load() {
       try {
-        const [u, s] = await Promise.all([
-          base44.auth.me(),
-          base44.entities.Session.list('-date', 500),
-        ]);
+        const u = await base44.auth.me();
+        const s = u?.email
+          ? await base44.entities.Session.filter({ created_by: u.email }, '-date', 500)
+          : [];
         setUser(u);
         setSessions(s);
       } catch (e) {}

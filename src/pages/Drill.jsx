@@ -65,20 +65,21 @@ export default function Drill() {
     });
 
     (async () => {
-      try {
-        await base44.entities.Session.create({
-          date: today, score, accuracy, avg_time: avgTime,
-          difficulty, category,
-          questions_answered: total,
-          correct_count: correct,
-          speed_rating: speedRating,
-          percentile: speedPercentile,
-        });
-        const user = await base44.auth.me();
-        const newStreak = calculateNewStreak(user.streak_count || 0, user.last_active_date);
-        await base44.auth.updateMe({ streak_count: newStreak, last_active_date: today });
-      } catch (_e) { /* fire and forget */ }
-    })();
+       try {
+         const user = await base44.auth.me();
+         await base44.entities.Session.create({
+           date: today, score, accuracy, avg_time: avgTime,
+           difficulty, category,
+           questions_answered: total,
+           correct_count: correct,
+           speed_rating: speedRating,
+           percentile: speedPercentile,
+           user_id: user?.id,
+         });
+         const newStreak = calculateNewStreak(user.streak_count || 0, user.last_active_date);
+         await base44.auth.updateMe({ streak_count: newStreak, last_active_date: today });
+       } catch (_e) { /* fire and forget */ }
+     })();
   }, [difficulty, category, durationMinutes, navigate]);
 
   const handleTimerExpire = useCallback(() => {
