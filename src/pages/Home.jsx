@@ -114,22 +114,40 @@ export default function Home() {
       {/* ── Benchmark Metrics ── */}
       <BenchmarkMetrics sessions={sessions} />
 
-      {/* ── Completed today banner ── */}
-      {completedToday && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.97 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-surface-2 border border-neon-cyan/20 rounded-2xl px-4 py-3 flex items-center gap-3"
-        >
-          <div className="w-8 h-8 rounded-full bg-neon-cyan/10 flex items-center justify-center">
-            <Zap size={16} className="text-neon-cyan" />
+      {/* ── Drill status banner (completed or incomplete) ── */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.97 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className={`rounded-2xl px-4 py-3 flex items-center justify-between gap-3 border ${
+          completedToday
+            ? 'bg-surface-2 border-neon-cyan/20'
+            : 'bg-primary/10 border-primary/30'
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+            completedToday ? 'bg-neon-cyan/10' : 'bg-primary/20'
+          }`}>
+            <Zap size={16} className={completedToday ? 'text-neon-cyan' : 'text-primary'} />
           </div>
           <div>
-            <p className="text-sm font-semibold text-foreground">Drill Complete!</p>
-            <p className="text-xs text-muted-foreground">You've trained today. Keep the streak alive.</p>
+            <p className="text-sm font-semibold text-foreground">
+              {completedToday ? 'Drill Complete!' : 'Your drill is waiting for you'}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {completedToday ? 'You\'ve trained today. Keep the streak alive.' : 'Start now to keep your streak alive.'}
+            </p>
           </div>
-        </motion.div>
-      )}
+        </div>
+        {!completedToday && (
+          <button
+            onClick={() => drillAllowed ? setDiffSheetOpen(true) : setLimitModalOpen(true)}
+            className="shrink-0 bg-primary text-primary-foreground font-grotesk font-bold text-xs px-3 py-2 rounded-xl no-select active:scale-95 transition-transform"
+          >
+            Start Drill
+          </button>
+        )}
+      </motion.div>
 
       {/* ── Daily Drill CTA (Primary) ── */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}>
