@@ -4,7 +4,7 @@
   "properties": {
     "user_id": {
       "type": "string",
-      "description": "ID of the user who created this session (for multi-tenant isolation)"
+      "description": "User ID (canonical ownership identifier - immutable UUID)"
     },
     "date": {
       "type": "string",
@@ -65,6 +65,7 @@
   "required": [
     "date",
     "score",
-    "difficulty"
+    "difficulty",
+    "user_id"
   ]
 }

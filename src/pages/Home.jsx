@@ -41,15 +41,15 @@ export default function Home() {
           const u = await base44.auth.me();
           setUser(u);
         }
-        if (user?.email) {
-          const s = await base44.entities.Session.filter({ created_by: user.email }, '-created_date', 20);
+        if (user?.id) {
+          const s = await base44.entities.Session.filter({ user_id: user.id }, '-created_date', 20);
           setSessions(s);
         }
       } catch (e) {}
       finally { setLoading(false); }
     }
     load();
-  }, [refetchUser, searchParams, user?.email]);
+  }, [refetchUser, searchParams, user?.id]);
 
   const lastActive = user?.last_active_date;
   const streakAlive = isStreakAlive(lastActive);

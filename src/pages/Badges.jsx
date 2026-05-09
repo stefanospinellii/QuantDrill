@@ -33,8 +33,8 @@ export default function Badges() {
     async function load() {
       try {
         const u = await base44.auth.me();
-        const s = u?.email
-          ? await base44.entities.Session.filter({ created_by: u.email }, '-date', 500)
+        const s = u?.id
+          ? await base44.entities.Session.filter({ user_id: u.id }, '-date', 500)
           : [];
         setUser(u);
         setSessions(s);
