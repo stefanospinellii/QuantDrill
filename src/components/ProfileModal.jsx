@@ -64,7 +64,7 @@ export default function ProfileModal({ open, onClose, user, isPremium }) {
             className="fixed inset-x-5 z-[9999] mx-auto max-w-[480px]"
             style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
             >
-            <div className="bg-surface-1 border border-border rounded-3xl p-6 max-h-[90vh] overflow-y-auto">
+            <div className="relative bg-surface-1 border border-border rounded-3xl p-6 max-h-[90vh] overflow-y-auto">
               {/* Close button */}
               <button
                 onClick={onClose}
