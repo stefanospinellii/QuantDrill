@@ -38,23 +38,22 @@ export default function DifficultySheet({ open, value, onClose, category, onStar
   return (
     <AnimatePresence>
       {open && (
-        <>
-          <motion.div
-            key="backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/60 z-[9999] no-select"
-          />
+        <motion.div
+          key="overlay"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+          className="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center no-select"
+        >
           <motion.div
             key="modal"
             initial={{ opacity: 0, scale: 0.92, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ type: 'spring', damping: 26, stiffness: 320 }}
-            className="fixed inset-x-5 z-[9999] mx-auto max-w-sm lg:max-w-md"
-            style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-[480px] mx-5"
           >
             <div className="bg-surface-1 border border-border rounded-3xl p-6 max-h-[90vh] overflow-y-auto">
               <div>
@@ -79,7 +78,7 @@ export default function DifficultySheet({ open, value, onClose, category, onStar
                         onClose();
                         navigate('/paywall');
                       } else {
-                        handleDifficultySelect(opt.key);
+                        setDifficulty(opt.key);
                       }
                     }}
                     className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border text-left no-select transition-all active:scale-[0.98] ${
@@ -134,9 +133,9 @@ export default function DifficultySheet({ open, value, onClose, category, onStar
 
             </div>
             </div>
-            </motion.div>
-            </>
-            )}
-            </AnimatePresence>
-            );
-            }
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
