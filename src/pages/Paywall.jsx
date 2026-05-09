@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Check, Zap, BarChart2, Award, Infinity as InfinityIcon, Lock } from 'lucide-react';
+import { Check, Zap, BarChart2, Award, Infinity as InfinityIcon, Lock, RefreshCw } from 'lucide-react';
 import MobileHeader from '@/components/MobileHeader';
+import { base44 } from '@/api/base44Client';
 
 const PLANS = [
   {
@@ -66,6 +67,23 @@ export default function Paywall({ onClose }) {
   const navigate = useNavigate();
   const [selected, setSelected] = useState('yearly');
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshMsg, setRefreshMsg] = useState(null);
+
+  const handleRefreshStatus = async () => {
+    setRefreshing(true);
+    setRefreshMsg(null);
+    try {
+      const user = await base44.auth.me();
+      if (user?.is_premium) {
+        navigate('/');
+      } else {
+        setRefreshMsg('No active subscription found yet.');
+      }
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const handleClose = () => {
     if (onClose) onClose();
@@ -195,6 +213,18 @@ export default function Paywall({ onClose }) {
           <p className="text-center text-xs text-muted-foreground">
             Cancel anytime · No ads · Secure payment
           </p>
+
+          <button
+            onClick={handleRefreshStatus}
+            disabled={refreshing}
+            className="w-full flex items-center justify-center gap-2 py-3 text-xs text-muted-foreground hover:text-foreground transition-colors no-select disabled:opacity-50 mt-1"
+          >
+            <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} />
+            Already subscribed? Tap to refresh
+          </button>
+          {refreshMsg && (
+            <p className="text-center text-xs text-muted-foreground -mt-1">{refreshMsg}</p>
+          )}
         </motion.div>
       </div>
     </div>
