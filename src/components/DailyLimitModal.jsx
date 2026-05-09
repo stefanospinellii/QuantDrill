@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Flame, ArrowUpRight } from 'lucide-react';
 
@@ -18,6 +19,7 @@ function formatCountdown(ms) {
 }
 
 export default function DailyLimitModal({ open, onClose }) {
+  const navigate = useNavigate();
   const [countdown, setCountdown] = useState(() => formatCountdown(getMsUntilMidnight()));
 
   useEffect(() => {
@@ -29,8 +31,8 @@ export default function DailyLimitModal({ open, onClose }) {
   }, [open]);
 
   const handleUpgrade = () => {
-    window.open('https://quantdrill.com/subscribe', '_blank');
     onClose();
+    navigate('/paywall');
   };
 
   return (

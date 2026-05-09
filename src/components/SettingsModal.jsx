@@ -21,7 +21,12 @@ export default function SettingsModal({ open, onClose }) {
   const handleDeleteAccount = async () => {
     setDeleting(true);
     try {
-      await base44.auth.updateMe({ streak_count: 0, last_active_date: null });
+      // Get current user to get their ID
+      const user = await base44.auth.me();
+      if (user?.id) {
+        // Delete the user account via service role
+        await base44.asServiceRole.entities.User.delete(user.id);
+      }
       clearUserCache();
       base44.auth.logout('/');
     } catch (e) {

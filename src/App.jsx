@@ -17,6 +17,9 @@ import Results from '@/pages/Results';
 import Progress from '@/pages/Progress';
 import Badges from '@/pages/Badges';
 import Paywall from '@/pages/Paywall';
+import Privacy from '@/pages/Privacy';
+import Terms from '@/pages/Terms';
+import CookieBanner from '@/components/CookieBanner';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated } = useAuth();
@@ -64,8 +67,11 @@ const AuthenticatedApp = () => {
         <Route path="/drill" element={<PageTransition><Drill /></PageTransition>} />
         <Route path="/results" element={<PageTransition><Results /></PageTransition>} />
         <Route path="/paywall" element={<PageTransition><Paywall /></PageTransition>} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
+      <CookieBanner />
     </AnimatePresence>
   );
 };
