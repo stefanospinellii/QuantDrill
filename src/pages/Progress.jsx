@@ -19,6 +19,7 @@ export default function Progress() {
   const navigate = useNavigate();
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
+  const [highlightedId, setHighlightedId] = useState(null);
 
   const load = useCallback(async () => {
     try {
@@ -37,10 +38,15 @@ export default function Progress() {
   useEffect(() => {
     if (!scrolled && location.hash) {
       setTimeout(() => {
-        const element = document.getElementById(location.hash.replace('#', ''));
+        const elementId = location.hash.replace('#', '');
+        const element = document.getElementById(elementId);
         if (element) {
           element.scrollIntoView({ behavior: 'smooth' });
+          setHighlightedId(elementId);
+          // Clear highlight after 1.5 seconds
+          const timer = setTimeout(() => setHighlightedId(null), 1500);
           setScrolled(true);
+          return () => clearTimeout(timer);
         }
       }, 100);
     }
@@ -211,7 +217,17 @@ export default function Progress() {
       )}
 
       {/* Accuracy Chart */}
-      <motion.div id="accuracy" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.38 }} className="bg-surface-1 border border-border rounded-3xl p-5 mb-6 scroll-mt-20">
+      <motion.div
+        id="accuracy"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.38 }}
+        className={`rounded-3xl p-5 mb-6 scroll-mt-20 ${
+          highlightedId === 'accuracy'
+            ? 'bg-surface-1 border-2 border-primary animate-pulse'
+            : 'bg-surface-1 border border-border'
+        }`}
+      >
         <p className="text-xs font-medium text-muted-foreground tracking-widest uppercase mb-4">Accuracy — 5-Session Moving Average</p>
         {sessions.length >= 5 ? (
           <ResponsiveContainer width="100%" height={180}>
@@ -231,7 +247,17 @@ export default function Progress() {
       </motion.div>
 
       {/* Speed Chart */}
-      <motion.div id="speed" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.41 }} className="bg-surface-1 border border-border rounded-3xl p-5 mb-6 scroll-mt-20">
+      <motion.div
+        id="speed"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.41 }}
+        className={`rounded-3xl p-5 mb-6 scroll-mt-20 ${
+          highlightedId === 'speed'
+            ? 'bg-surface-1 border-2 border-primary animate-pulse'
+            : 'bg-surface-1 border border-border'
+        }`}
+      >
         <p className="text-xs font-medium text-muted-foreground tracking-widest uppercase mb-4">Response Time — 5-Session Moving Average (seconds)</p>
         {sessions.length >= 5 ? (
           <ResponsiveContainer width="100%" height={180}>
@@ -251,18 +277,30 @@ export default function Progress() {
       </motion.div>
 
       {/* Recent sessions */}
-      <motion.div id="sessions" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.44 }} className="scroll-mt-20">
-        <p className="text-xs font-medium text-muted-foreground tracking-widest uppercase mb-3">All Sessions</p>
+      <motion.div
+        id="sessions"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.44 }}
+        className="scroll-mt-20"
+      >
+        <div className={`${
+          highlightedId === 'sessions'
+            ? 'bg-surface-1 border-2 border-primary rounded-3xl p-5 animate-pulse'
+            : ''
+        }`}>
+          <p className="text-xs font-medium text-muted-foreground tracking-widest uppercase mb-3">All Sessions</p>
         {sessions.length === 0 ? (
           <div className="bg-surface-1 border border-border rounded-2xl p-6 text-center">
             <p className="text-muted-foreground text-sm">No sessions yet. Start your first drill!</p>
           </div>
         ) : (
-          <div className="space-y-2">
-            {sessions.map((s, i) => <SessionRow key={s.id || i} session={s} />)}
-          </div>
-        )}
-      </motion.div>
+            <div className="space-y-2">
+              {sessions.map((s, i) => <SessionRow key={s.id || i} session={s} />)}
+            </div>
+          )}
+        </div>
+        </motion.div>
     </div>
   );
 }
