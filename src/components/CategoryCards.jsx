@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Lock } from 'lucide-react';
+import DifficultySheet from '@/components/DifficultySheet';
 
 const CATEGORIES = [
   { key: 'mental_math',        emoji: '⚡', label: 'Mental Math',       sub: 'Speed arithmetic' },
@@ -12,6 +14,7 @@ const CATEGORIES = [
 
 export default function CategoryCards({ difficulty }) {
   const navigate = useNavigate();
+  const [sheetCategory, setSheetCategory] = useState(null);
 
   return (
     <div>
@@ -29,7 +32,7 @@ export default function CategoryCards({ difficulty }) {
               if (cat.premium) {
                 navigate('/paywall');
               } else {
-                navigate(`/drill?difficulty=${difficulty}&category=${cat.key}&duration=5`);
+                setSheetCategory(cat.key);
               }
             }}
             className={`flex items-center gap-3 border rounded-2xl px-3.5 py-3.5 text-left transition-colors active:scale-95 no-select ${
@@ -51,6 +54,17 @@ export default function CategoryCards({ difficulty }) {
           </motion.button>
         ))}
       </div>
+
+      <DifficultySheet
+        open={!!sheetCategory}
+        value={difficulty}
+        category={sheetCategory}
+        onClose={() => setSheetCategory(null)}
+        onStart={({ difficulty: d, duration, category }) => {
+          setSheetCategory(null);
+          navigate(`/drill?difficulty=${d}&category=${category}&duration=${duration}`);
+        }}
+      />
     </div>
   );
 }

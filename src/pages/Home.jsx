@@ -64,6 +64,27 @@ export default function Home() {
         </div>
       </motion.div>
 
+      {/* ── Streak bar ── */}
+      {(user?.streak_count > 0 || completedToday) && (
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border ${
+            streakAlive
+              ? 'bg-orange-500/10 border-orange-500/20'
+              : 'bg-surface-2 border-border'
+          }`}
+        >
+          <Flame size={16} className={streakAlive ? 'text-neon-orange' : 'text-muted-foreground'} />
+          <span className={`text-sm font-grotesk font-bold ${streakAlive ? 'text-neon-orange' : 'text-muted-foreground'}`}>
+            {user?.streak_count || 1} day streak
+          </span>
+          {completedToday && (
+            <span className="ml-auto text-[10px] font-medium text-emerald-400 uppercase tracking-widest">✓ Today</span>
+          )}
+        </motion.div>
+      )}
+
       {/* ── Benchmark Metrics ── */}
       <BenchmarkMetrics sessions={sessions} />
 

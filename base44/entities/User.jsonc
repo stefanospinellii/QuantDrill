@@ -1,0 +1,44 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "description": "The role of the user in the app",
+      "enum": [
+        "admin",
+        "user"
+      ]
+    },
+    "is_premium": {
+      "type": "boolean",
+      "description": "Whether the user has an active premium subscription",
+      "default": false
+    },
+    "stripe_customer_id": {
+      "type": "string",
+      "description": "Stripe customer ID"
+    },
+    "stripe_subscription_id": {
+      "type": "string",
+      "description": "Active Stripe subscription ID"
+    },
+    "subscription_plan": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "yearly",
+        "lifetime"
+      ],
+      "description": "Active subscription plan"
+    },
+    "subscription_expires_at": {
+      "type": "string",
+      "format": "date",
+      "description": "Date when the subscription expires"
+    }
+  },
+  "required": [
+    "role"
+  ]
+}

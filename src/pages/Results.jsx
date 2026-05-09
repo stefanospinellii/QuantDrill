@@ -98,7 +98,7 @@ export default function Results() {
           className="mt-auto flex flex-col gap-3"
         >
           <button
-            onClick={() => navigate(`/session?category=${category}&difficulty=${difficulty}&duration=${durationMinutes || 5}`)}
+            onClick={() => navigate(`/drill?category=${category}&difficulty=${difficulty}&duration=${durationMinutes || 5}`)}
             className="w-full bg-primary text-primary-foreground font-grotesk font-bold text-base py-4 rounded-2xl glow-purple transition-all active:scale-95 no-select flex items-center justify-center gap-2"
           >
             <RotateCcw size={17} /> Train Again
