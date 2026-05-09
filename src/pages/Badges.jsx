@@ -5,7 +5,23 @@ import { Lock, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { BADGES, CATEGORY_LABELS, computeBadgeContext, PREMIUM_BADGE_IDS } from '@/lib/badges';
 
-const CATEGORY_KEYS = ['general', 'mental_math', 'percentages_growth', 'business_math', 'market_sizing', 'gmat_quant'];
+const CATEGORY_KEYS = [
+  'general',
+  'mental_math',
+  'percentages_growth',
+  'business_math',
+  'market_sizing',
+  'gmat_quant',
+  'streaks',
+  'volume',
+  'accuracy',
+  'speed',
+  'mastery',
+  'difficulty',
+  'time_of_day',
+  'special',
+  'fun',
+];
 
 export default function Badges() {
   const [sessions, setSessions] = useState([]);
@@ -97,6 +113,19 @@ export default function Badges() {
         const catBadges = BADGES.filter(b => b.category === cat);
         if (!catBadges.length) return null;
 
+        // Separate earned and locked badges
+        const earnedBadges = catBadges.filter(badge => {
+          const unlocked = badge.check(ctx);
+          const isPremiumBadge = PREMIUM_BADGE_IDS.has(badge.id);
+          return unlocked && !(isPremiumBadge && !isPremium);
+        });
+        const lockedBadges = catBadges.filter(badge => {
+          const unlocked = badge.check(ctx);
+          const isPremiumBadge = PREMIUM_BADGE_IDS.has(badge.id);
+          return !unlocked || (isPremiumBadge && !isPremium);
+        });
+        const sortedBadges = [...earnedBadges, ...lockedBadges];
+
         return (
           <motion.div
             key={cat}
@@ -106,30 +135,30 @@ export default function Badges() {
             className="mb-6"
           >
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-3">
-              {CATEGORY_LABELS[cat] || cat}
+              {CATEGORY_LABELS[cat] || cat} ({earnedBadges.length}/{catBadges.length})
             </p>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5">
-              {catBadges.map((badge) => {
+              {sortedBadges.map((badge) => {
                 const unlocked = badge.check(ctx);
                 const isPremiumBadge = PREMIUM_BADGE_IDS.has(badge.id);
-                const isLocked = !unlocked || (isPremiumBadge && !isPremium);
                 const isPremiumGated = isPremiumBadge && !isPremium;
+                const isEarned = unlocked && !isPremiumGated;
 
                 return (
                   <div
                     key={badge.id}
                     className={`flex items-center gap-4 px-4 py-4 rounded-2xl border transition-all ${
-                      unlocked && !isPremiumGated
+                      isEarned
                         ? `${badge.bg} ${badge.border}`
-                        : 'bg-surface-1 border-border'
-                    } ${isLocked ? 'opacity-50' : ''}`}
+                        : 'bg-surface-1 border-border opacity-50'
+                    }`}
                   >
                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 ${
-                      unlocked && !isPremiumGated ? badge.bg : 'bg-surface-3'
+                      isEarned ? badge.bg : 'bg-surface-3'
                     }`}>
                       {isPremiumGated ? (
                         <Lock size={16} className="text-primary" />
-                      ) : unlocked ? (
+                      ) : isEarned ? (
                         badge.emoji
                       ) : (
                         <Lock size={18} className="text-muted-foreground" />
@@ -137,7 +166,7 @@ export default function Badges() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className={`text-sm font-grotesk font-bold ${unlocked && !isPremiumGated ? 'text-foreground' : 'text-muted-foreground'}`}>
+                        <p className={`text-sm font-grotesk font-bold ${isEarned ? 'text-foreground' : 'text-muted-foreground'}`}>
                           {badge.label}
                         </p>
                         {isPremiumBadge && !isPremium && (
@@ -148,7 +177,7 @@ export default function Badges() {
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">{badge.description}</p>
                     </div>
-                    {unlocked && !isPremiumGated && (
+                    {isEarned && (
                       <CheckCircle2 size={16} className={`${badge.color} shrink-0`} />
                     )}
                   </div>
