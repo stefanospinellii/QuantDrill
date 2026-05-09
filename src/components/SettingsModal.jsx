@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Trash2, LogOut, AlertTriangle, ChevronRight } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
@@ -34,30 +35,22 @@ export default function SettingsModal({ open, onClose }) {
     }
   };
 
-  return (
+  const modalContent = (
     <AnimatePresence>
       {open && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            key="backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/60 z-[9999] no-select"
-          />
-
-          {/* Centered Modal */}
+        <div
+          className="fixed inset-0 flex items-center justify-center bg-black/70 z-[9999]"
+          onClick={onClose}
+        >
           <motion.div
             key="modal"
             initial={{ opacity: 0, scale: 0.92, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ type: 'spring', damping: 26, stiffness: 320 }}
-            className="fixed inset-x-5 z-[9999] mx-auto max-w-[480px]"
-            style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
-            >
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-[480px] mx-5"
+          >
             <div className="bg-surface-1 border border-border rounded-3xl p-6 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-grotesk font-bold text-foreground">Settings</h2>
@@ -123,8 +116,10 @@ export default function SettingsModal({ open, onClose }) {
               )}
             </div>
           </motion.div>
-        </>
+        </div>
       )}
     </AnimatePresence>
   );
+
+  return ReactDOM.createPortal(modalContent, document.body);
 }
