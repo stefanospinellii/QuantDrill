@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
     const sessionParams = {
       customer_email: user.email,
       metadata: { user_id: user.id, plan },
-      success_url: success_url || 'https://quantdrill.base44.app/success',
+      success_url: success_url || 'https://quantdrill.base44.app/?payment=success',
       cancel_url: cancel_url || 'https://quantdrill.base44.app/paywall',
       mode: priceConfig.mode,
       line_items: [{
