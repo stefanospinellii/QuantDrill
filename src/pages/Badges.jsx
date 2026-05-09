@@ -48,7 +48,7 @@ export default function Badges() {
   const nextBadge = BADGES.find(b => !b.check(ctx) && (!PREMIUM_BADGE_IDS.has(b.id) || isPremium));
 
   return (
-    <div className="min-h-screen bg-background px-5 pt-10 pb-6">
+    <div className="min-h-screen bg-background px-5 lg:px-0 pt-10 pb-6 lg:max-w-3xl lg:mx-auto lg:w-full">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h2 className="text-2xl font-grotesk font-bold text-foreground mb-1">Achievements</h2>
         <p className="text-sm text-muted-foreground mb-2">Performance milestones across all categories</p>
@@ -108,7 +108,7 @@ export default function Badges() {
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-3">
               {CATEGORY_LABELS[cat] || cat}
             </p>
-            <div className="space-y-2.5">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5">
               {catBadges.map((badge) => {
                 const unlocked = badge.check(ctx);
                 const isPremiumBadge = PREMIUM_BADGE_IDS.has(badge.id);

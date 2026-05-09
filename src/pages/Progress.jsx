@@ -85,7 +85,7 @@ export default function Progress() {
   }
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-background px-5 pt-10 pb-6 overflow-y-auto" {...handlers}>
+    <div ref={containerRef} className="min-h-screen bg-background px-5 lg:px-0 pt-10 pb-6 overflow-y-auto lg:max-w-3xl lg:mx-auto lg:w-full" {...handlers}>
       <PullToRefreshIndicator pullDistance={pullDistance} isRefreshing={isRefreshing} />
 
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
@@ -94,7 +94,7 @@ export default function Progress() {
       </motion.div>
 
       {/* Summary cards */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="grid grid-cols-2 gap-3 mb-6">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <MiniStat icon={<Flame size={16} className="text-neon-orange" />} label="Streak" value={`${user?.streak_count || 0}d`} />
         <MiniStat icon={<Target size={16} className="text-neon-purple" />} label="Avg Score" value={avgScore || '—'} sub="last 7 sessions" />
         <MiniStat icon={<Zap size={16} className="text-neon-cyan" />} label="This Week" value={`${completedDays}/7`} sub="days trained" />

@@ -51,7 +51,7 @@ export default function Home() {
 
   return (
     <div
-      className="min-h-screen bg-background px-5 pb-8 flex flex-col gap-6"
+      className="min-h-screen bg-background px-5 lg:px-0 pb-8 flex flex-col gap-6 lg:max-w-3xl lg:mx-auto lg:w-full"
       style={{ paddingTop: 'max(48px, env(safe-area-inset-top, 48px))' }}
     >
       {/* ── Header ── */}

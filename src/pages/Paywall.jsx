@@ -135,7 +135,7 @@ export default function Paywall({ onClose }) {
     <div className="min-h-screen bg-background flex flex-col">
       <MobileHeader title="" onBack={handleClose} />
 
-      <div className="flex-1 flex flex-col px-5 pt-4 pb-8 overflow-y-auto">
+      <div className="flex-1 flex flex-col px-5 pt-4 pb-8 overflow-y-auto lg:max-w-3xl lg:mx-auto lg:w-full lg:pt-8">
         {/* Hero */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
           <div className="w-16 h-16 rounded-3xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-4 text-3xl">
@@ -175,9 +175,9 @@ export default function Paywall({ onClose }) {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.18 }}
-          className="space-y-3 mb-6"
+          className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-6"
         >
-          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-3">Choose Your Plan</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-3 lg:col-span-3">Choose Your Plan</p>
           {PLANS.map(plan => (
             <div
               key={plan.key}

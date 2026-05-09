@@ -25,7 +25,7 @@ export default function Results() {
     <div className="min-h-screen bg-background flex flex-col pb-8">
       <MobileHeader title="" onBack={() => navigate('/home')} />
 
-      <div className="flex-1 flex flex-col px-5 pt-6">
+      <div className="flex-1 flex flex-col px-5 pt-6 lg:max-w-2xl lg:mx-auto lg:w-full lg:pt-10">
 
         {/* Label */}
         <motion.div
@@ -42,7 +42,7 @@ export default function Results() {
           initial={{ opacity: 0, scale: 0.92 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.45, ease: 'easeOut' }}
-          className="grid grid-cols-2 gap-4 mb-8"
+          className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
         >
           <MetricCircle
             value={`${accuracy}%`}

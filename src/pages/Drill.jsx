@@ -136,6 +136,8 @@ export default function Drill() {
     <div className="min-h-screen bg-background flex flex-col pb-6">
       <MobileHeader title="" onBack={() => { setSessionActive(false); navigate('/'); }} />
 
+      <div className="flex-1 flex flex-col w-full lg:max-w-xl lg:mx-auto lg:w-full">
+
       {/* Global session timer */}
       <div className="mt-4">
         <GlobalTimer
@@ -215,6 +217,8 @@ export default function Drill() {
           </div>
 
         </form>
+      </div>
+
       </div>
     </div>
   );
