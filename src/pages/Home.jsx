@@ -10,7 +10,6 @@ import CategoryCards from '@/components/CategoryCards';
 import { getDrillAccess } from '@/lib/freemium';
 import BenchmarkMetrics from '@/components/BenchmarkMetrics';
 import DailyLimitModal from '@/components/DailyLimitModal';
-import PaymentSuccessBanner from '@/components/PaymentSuccessBanner';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -20,20 +19,12 @@ export default function Home() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [diffSheetOpen, setDiffSheetOpen] = useState(false);
   const [limitModalOpen, setLimitModalOpen] = useState(false);
-  const [paymentSuccess, setPaymentSuccess] = useState(() => {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('payment') === 'success';
-  });
 
   useEffect(() => {
     async function load() {
       try {
         const u = await base44.auth.me();
         setUser(u);
-        // If returning from Stripe, clear the query param without reload
-        if (new URLSearchParams(window.location.search).get('payment') === 'success') {
-          window.history.replaceState({}, '', '/');
-        }
         const s = await base44.entities.Session.list('-created_date', 20);
         setSessions(s);
       } catch (e) {}
@@ -136,11 +127,6 @@ export default function Home() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.28 }}>
         <CategoryCards difficulty="medium" />
       </motion.div>
-
-      {/* ── Payment Success Banner ── */}
-      {paymentSuccess && (
-        <PaymentSuccessBanner onClose={() => setPaymentSuccess(false)} />
-      )}
 
       {/* ── Modals ── */}
       <DailyLimitModal open={limitModalOpen} onClose={() => setLimitModalOpen(false)} />

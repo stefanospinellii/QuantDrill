@@ -16,10 +16,16 @@ import Results from '@/pages/Results';
 import Progress from '@/pages/Progress';
 import Badges from '@/pages/Badges';
 import Paywall from '@/pages/Paywall';
+import PaymentSuccess from '@/pages/PaymentSuccess';
 
 const AppRoutes = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
   const location = useLocation();
+
+  // /success is always public — no auth gate
+  if (location.pathname === '/success') {
+    return <PaymentSuccess />;
+  }
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
