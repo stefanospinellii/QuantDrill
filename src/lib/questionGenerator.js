@@ -350,7 +350,7 @@ const CATEGORY_GENERATORS = {
   business_math:      [profitMargin, breakevenUnits, revenueCalc, contributionMargin],
   market_sizing:      [marketSizingFixed],
   gmat_quant:         [gmatQuant],
-  // Daily mix: weighted across all skills
+  // Daily mix: weighted across all skills (including premium categories for discovery)
   daily: [
     multiplication, multiplication,
     division, division,
@@ -363,9 +363,11 @@ const CATEGORY_GENERATORS = {
     breakevenUnits,
     revenueCalc,
     contributionMargin,
-    marketSizingFixed,
-    gmatArithmetic,
-    gmatRatio,
+    marketSizingFixed, marketSizingFixed,
+    gmatArithmetic, gmatArithmetic,
+    gmatAlgebra,
+    gmatRatio, gmatRatio,
+    gmatWordProblem,
   ],
 };
 
