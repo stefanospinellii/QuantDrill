@@ -138,6 +138,26 @@ export default function Home() {
       />
       </motion.div>
 
+      {/* ── Upgrade CTA (free users only) ── */}
+      {!isPremium && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className="flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border border-[#7C3AED]/40 bg-[#7C3AED]/10"
+        >
+          <p className="text-xs text-foreground leading-snug flex-1">
+            <span className="font-bold text-[#a78bfa]">Unlock Pro</span> — unlimited drills, all categories, hard mode
+          </p>
+          <button
+            onClick={() => navigate('/paywall')}
+            className="shrink-0 bg-[#7C3AED] text-white font-grotesk font-bold text-xs px-3 py-2 rounded-xl no-select active:scale-95 transition-transform"
+          >
+            Upgrade Now
+          </button>
+        </motion.div>
+      )}
+
       {/* ── Modals ── */}
       <DailyLimitModal open={limitModalOpen} onClose={() => setLimitModalOpen(false)} />
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
