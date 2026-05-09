@@ -34,6 +34,19 @@ const AuthenticatedApp = () => {
     return <UserNotRegisteredError />;
   }
 
+  // auth_required just means the user is not logged in — still render routes
+  // so unauthenticated users see the landing page at /
+  if (authError?.type === 'auth_required') {
+    return (
+      <AnimatePresence mode="wait" initial={false}>
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<Landing />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AnimatePresence>
+    );
+  }
+
   return (
     <AnimatePresence mode="wait" initial={false}>
       <Routes location={location} key={location.pathname}>

@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
 import { Zap, Clock, Target, TrendingUp, ChevronRight } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
 
 const FEATURES = [
   {
@@ -52,6 +53,7 @@ function FadeInSection({ children, delay = 0 }) {
 
 export default function Landing() {
   const navigate = useNavigate();
+  const handleCTA = () => base44.auth.redirectToLogin('/home');
 
   return (
     <div
@@ -74,7 +76,7 @@ export default function Landing() {
           Quant<span style={{ color: '#9B6FE8' }}>Drill</span>
         </span>
         <button
-          onClick={() => navigate('/home')}
+          onClick={handleCTA}
           className="text-sm font-semibold px-4 py-2 rounded-xl no-select"
           style={{ color: '#9B6FE8', border: '1px solid rgba(124,58,237,0.35)', background: 'rgba(124,58,237,0.08)' }}
         >
@@ -129,7 +131,7 @@ export default function Landing() {
           initial={{ opacity: 0, scale: 0.93 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          onClick={() => navigate('/home')}
+          onClick={handleCTA}
           className="font-grotesk font-bold text-base text-white py-4 px-10 rounded-2xl no-select active:scale-95 transition-transform flex items-center gap-2"
           style={{ background: '#7C3AED', boxShadow: '0 0 40px rgba(124,58,237,0.5), 0 0 80px rgba(124,58,237,0.15)' }}
         >
@@ -234,7 +236,7 @@ export default function Landing() {
             </p>
           </div>
           <button
-            onClick={() => navigate('/home')}
+            onClick={handleCTA}
             className="w-full font-grotesk font-bold text-base text-white py-4 rounded-2xl no-select active:scale-95 transition-transform flex items-center justify-center gap-2"
             style={{ background: '#7C3AED', boxShadow: '0 0 32px rgba(124,58,237,0.4)' }}
           >
