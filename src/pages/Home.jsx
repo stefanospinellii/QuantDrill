@@ -137,7 +137,7 @@ export default function Home() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.28 }}>
         <CategoryCards
         difficulty="medium"
-        isPremium={isPremium}
+        user={user}
         onNeedsAuth={!user ? (settings) => {
           setPendingDrillSettings(settings);
           setLoginModalOpen(true);
@@ -186,7 +186,7 @@ export default function Home() {
         open={diffSheetOpen}
         value="medium"
         category="daily"
-        isPremium={isPremium}
+        user={user}
         onClose={() => setDiffSheetOpen(false)}
         onNeedsAuth={!user ? (settings) => {
           setDiffSheetOpen(false);

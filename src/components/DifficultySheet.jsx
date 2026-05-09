@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Lock, Check, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { isDifficultyAccessible } from '@/lib/accessControl';
+import { getUserAccess } from '@/lib/accessControl';
 
 const DIFFICULTIES = [
   { key: 'easy',   label: 'Easy',   desc: 'Beginner-friendly · simpler calculations' },
@@ -16,7 +16,7 @@ const DURATIONS = [
   { minutes: 10, label: '10 min' },
 ];
 
-export default function DifficultySheet({ open, value, onClose, category, onStart, onNeedsAuth, isPremium }) {
+export default function DifficultySheet({ open, value, onClose, category, onStart, onNeedsAuth, user }) {
   const [difficulty, setDifficulty] = useState(value || 'medium');
   const [duration, setDuration] = useState(null);
   const navigate = useNavigate();
@@ -70,45 +70,44 @@ export default function DifficultySheet({ open, value, onClose, category, onStar
               </div>
 
               {/* Difficulty */}
-              <div className="space-y-2 mb-6">
-                {DIFFICULTIES.map(opt => {
-                  const isAccessible = isDifficultyAccessible(category, opt.key, isPremium);
-                  return (
-                    <button
-                      key={opt.key}
-                      onClick={() => {
-                        if (!isAccessible) {
-                          if (opt.key === 'hard' && !isPremium) {
-                            onClose();
-                            navigate('/paywall');
-                          }
-                        } else {
-                          setDifficulty(opt.key);
-                        }
-                      }}
-                      disabled={!isAccessible}
-                      className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border text-left no-select transition-all active:scale-[0.98] ${
-                        !isAccessible
-                          ? 'opacity-50 cursor-not-allowed'
-                          : difficulty === opt.key
-                          ? 'bg-primary/10 border-primary'
-                          : 'bg-surface-2 border-border'
-                      }`}
-                    >
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                          {opt.label}
-                          {!isAccessible && opt.key === 'hard' && <Lock size={11} className="text-neon-orange" />}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{opt.desc}</p>
-                      </div>
-                      {isAccessible && difficulty === opt.key && (
-                        <Check size={16} className="text-primary shrink-0" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+               <div className="space-y-2 mb-6">
+                 {DIFFICULTIES.map(opt => {
+                   const isAccessible = getUserAccess(user, category, opt.key);
+                   return (
+                     <button
+                       key={opt.key}
+                       onClick={() => {
+                         if (isAccessible) {
+                           setDifficulty(opt.key);
+                         } else {
+                           // User cannot access this difficulty
+                           onClose();
+                           navigate('/paywall');
+                         }
+                       }}
+                       disabled={!isAccessible}
+                       className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border text-left no-select transition-all active:scale-[0.98] ${
+                         !isAccessible
+                           ? 'opacity-50 cursor-not-allowed'
+                           : difficulty === opt.key
+                           ? 'bg-primary/10 border-primary'
+                           : 'bg-surface-2 border-border'
+                       }`}
+                     >
+                       <div className="flex-1">
+                         <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                           {opt.label}
+                           {!isAccessible && <Lock size={11} className="text-neon-orange" />}
+                         </p>
+                         <p className="text-xs text-muted-foreground mt-0.5">{opt.desc}</p>
+                       </div>
+                       {isAccessible && difficulty === opt.key && (
+                         <Check size={16} className="text-primary shrink-0" />
+                       )}
+                     </button>
+                   );
+                 })}
+               </div>
 
               {/* Session Length */}
               <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest mb-2.5">Session Length</p>
