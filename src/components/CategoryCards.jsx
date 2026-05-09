@@ -12,7 +12,7 @@ const CATEGORIES = [
   { key: 'market_sizing',      emoji: '🌍', label: 'Market Sizing',     sub: 'Estimation cases',     premium: true },
 ];
 
-export default function CategoryCards({ difficulty }) {
+export default function CategoryCards({ difficulty, isPremium }) {
   const navigate = useNavigate();
   const [sheetCategory, setSheetCategory] = useState(null);
 
@@ -29,14 +29,14 @@ export default function CategoryCards({ difficulty }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 + i * 0.05 }}
             onClick={() => {
-              if (cat.premium) {
+              if (cat.premium && !isPremium) {
                 navigate('/paywall');
               } else {
                 setSheetCategory(cat.key);
               }
             }}
             className={`flex items-center gap-3 border rounded-2xl px-3.5 py-3.5 text-left transition-colors active:scale-95 no-select ${
-              cat.premium
+              cat.premium && !isPremium
                 ? 'bg-surface-1 border-border opacity-50 cursor-default'
                 : 'bg-surface-2 border-border hover:border-primary/40'
             }`}
@@ -44,12 +44,12 @@ export default function CategoryCards({ difficulty }) {
             <span className="text-xl leading-none">{cat.emoji}</span>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
-                <p className={`text-sm font-semibold leading-tight truncate ${cat.premium ? 'text-muted-foreground' : 'text-foreground'}`}>{cat.label}</p>
-                {cat.premium && <Lock size={10} className="text-neon-orange shrink-0" />}
-              </div>
-              <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight truncate">
-                {cat.premium ? 'Premium' : cat.sub}
-              </p>
+                  <p className={`text-sm font-semibold leading-tight truncate ${cat.premium && !isPremium ? 'text-muted-foreground' : 'text-foreground'}`}>{cat.label}</p>
+                  {cat.premium && !isPremium && <Lock size={10} className="text-neon-orange shrink-0" />}
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight truncate">
+                  {cat.premium && !isPremium ? 'Premium' : cat.sub}
+                </p>
             </div>
           </motion.button>
         ))}

@@ -125,7 +125,7 @@ export default function Home() {
 
       {/* ── Focused Practice ── */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.28 }}>
-        <CategoryCards difficulty="medium" />
+        <CategoryCards difficulty="medium" isPremium={isPremium} />
       </motion.div>
 
       {/* ── Modals ── */}
@@ -135,6 +135,7 @@ export default function Home() {
         open={diffSheetOpen}
         value="medium"
         category="daily"
+        isPremium={isPremium}
         onClose={() => setDiffSheetOpen(false)}
         onStart={({ difficulty, duration, category }) => {
           navigate(`/drill?difficulty=${difficulty}&category=${category}&duration=${duration}`);

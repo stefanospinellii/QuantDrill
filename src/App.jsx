@@ -16,7 +16,6 @@ import Results from '@/pages/Results';
 import Progress from '@/pages/Progress';
 import Badges from '@/pages/Badges';
 import Paywall from '@/pages/Paywall';
-import PaymentSuccess from '@/pages/PaymentSuccess';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -65,10 +64,7 @@ function App() {
         <SplashScreen onDone={() => setSplashDone(true)} />
         {splashDone && (
           <Router>
-            <Routes>
-              <Route path="/success" element={<PageTransition><PaymentSuccess /></PageTransition>} />
-              <Route path="*" element={<AuthenticatedApp />} />
-            </Routes>
+            <AuthenticatedApp />
           </Router>
         )}
         <Toaster />

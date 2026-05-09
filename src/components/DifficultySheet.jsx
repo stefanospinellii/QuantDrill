@@ -5,7 +5,7 @@ import { X, Lock, Check, Zap } from 'lucide-react';
 const DIFFICULTIES = [
   { key: 'easy',   label: 'Easy',   desc: 'Beginner-friendly · simpler calculations' },
   { key: 'medium', label: 'Medium', desc: 'Standard consulting / GMAT level' },
-  { key: 'hard',   label: 'Hard',   desc: 'Advanced mental math · complex reasoning', premium: true },
+  { key: 'hard',   label: 'Hard',   desc: 'Advanced mental math · complex reasoning' },
 ];
 
 const DURATIONS = [
@@ -14,7 +14,7 @@ const DURATIONS = [
   { minutes: 10, label: '10 min' },
 ];
 
-export default function DifficultySheet({ open, value, onClose, category, onStart }) {
+export default function DifficultySheet({ open, value, onClose, category, onStart, isPremium }) {
   const [difficulty, setDifficulty] = useState(value || 'medium');
   const [duration, setDuration] = useState(null);
 
@@ -70,23 +70,26 @@ export default function DifficultySheet({ open, value, onClose, category, onStar
                 {DIFFICULTIES.map(opt => (
                   <button
                     key={opt.key}
-                    onClick={() => !opt.premium && handleDifficultySelect(opt.key)}
+                    onClick={() => {
+                      const isLocked = opt.key === 'hard' && !isPremium;
+                      if (!isLocked) handleDifficultySelect(opt.key);
+                    }}
                     className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border text-left no-select transition-all ${
-                      difficulty === opt.key && !opt.premium
+                      difficulty === opt.key
                         ? 'bg-primary/10 border-primary'
-                        : opt.premium
+                        : opt.key === 'hard' && !isPremium
                         ? 'bg-surface-1 border-border opacity-50 cursor-default'
                         : 'bg-surface-2 border-border active:scale-[0.98]'
                     }`}
                   >
                     <div className="flex-1">
-                      <p className={`text-sm font-semibold ${opt.premium ? 'text-muted-foreground' : 'text-foreground'}`}>
+                      <p className={`text-sm font-semibold ${opt.key === 'hard' && !isPremium ? 'text-muted-foreground' : 'text-foreground'}`}>
                         {opt.label}
-                        {opt.premium && <Lock size={11} className="inline ml-1.5 text-neon-orange" />}
+                        {opt.key === 'hard' && !isPremium && <Lock size={11} className="inline ml-1.5 text-neon-orange" />}
                       </p>
                       <p className="text-xs text-muted-foreground mt-0.5">{opt.desc}</p>
                     </div>
-                    {difficulty === opt.key && !opt.premium && (
+                    {difficulty === opt.key && !(opt.key === 'hard' && !isPremium) && (
                       <Check size={16} className="text-primary shrink-0" />
                     )}
                   </button>
