@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
+import { getSessionsForUser } from '@/lib/querySafety';
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { Flame, TrendingUp, Zap, Target, Clock, Lock } from 'lucide-react';
@@ -26,7 +27,7 @@ export default function Progress() {
     try {
       const u = await base44.auth.me();
       const s = u?.id 
-        ? await base44.entities.Session.filter({ user_id: u.id }, '-date', 200)
+        ? await getSessionsForUser(u.id, '-date', 200)
         : [];
       setUser(u);
       setSessions(s);

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { getSessionsForUser } from '@/lib/querySafety';
 import { motion } from 'framer-motion';
 import { Flame, Zap, Settings, ChevronRight } from 'lucide-react';
 import { hasCompletedTodaysSprint, isStreakAlive } from '@/lib/streakUtils';
@@ -42,7 +43,7 @@ export default function Home() {
           setUser(u);
         }
         if (user?.id) {
-          const s = await base44.entities.Session.filter({ user_id: user.id }, '-created_date', 20);
+          const s = await getSessionsForUser(user.id, '-created_date', 20);
           setSessions(s);
         }
       } catch (e) {}

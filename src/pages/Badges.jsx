@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { getSessionsForUser } from '@/lib/querySafety';
 import { motion } from 'framer-motion';
 import { Lock, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -34,7 +35,7 @@ export default function Badges() {
       try {
         const u = await base44.auth.me();
         const s = u?.id
-          ? await base44.entities.Session.filter({ user_id: u.id }, '-date', 500)
+          ? await getSessionsForUser(u.id, '-date', 500)
           : [];
         setUser(u);
         setSessions(s);

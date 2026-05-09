@@ -4,7 +4,7 @@
   "properties": {
     "user_id": {
       "type": "string",
-      "description": "User ID (canonical ownership identifier - immutable UUID)"
+      "description": "CANONICAL ownership identifier (UUID) \u2014 REQUIRED, IMMUTABLE, NOT NULL"
     },
     "date": {
       "type": "string",

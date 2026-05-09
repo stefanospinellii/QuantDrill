@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronRight, LogOut, Trash2, AlertTriangle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { getSessionsForUser } from '@/lib/querySafety';
 import { queryClientInstance } from '@/lib/query-client';
 import CancellationRetentionFlow from './CancellationRetentionFlow';
 import ReminderSettings from './ReminderSettings';
@@ -32,7 +33,7 @@ export default function ProfileModal({ open, onClose, user, isPremium }) {
     if (showReminders || showCancellation) return;
     async function loadBadges() {
       try {
-        const sessions = await base44.entities.Session.filter({ user_id: user?.id }, '-created_date', 1000);
+        const sessions = user?.id ? await getSessionsForUser(user.id, '-created_date', 1000) : [];
         const uniqueDifficulties = new Set(sessions.map(s => s.difficulty));
         const uniqueCategories = new Set(sessions.map(s => s.category));
         let count = uniqueDifficulties.size + uniqueCategories.size;
