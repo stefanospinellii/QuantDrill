@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Lock, Check, Zap } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const DIFFICULTIES = [
   { key: 'easy',   label: 'Easy',   desc: 'Beginner-friendly · simpler calculations' },
@@ -17,6 +18,7 @@ const DURATIONS = [
 export default function DifficultySheet({ open, value, onClose, category, onStart, onNeedsAuth, isPremium }) {
   const [difficulty, setDifficulty] = useState(value || 'medium');
   const [duration, setDuration] = useState(null);
+  const navigate = useNavigate();
 
   const handleStart = () => {
     if (!duration) return;
@@ -76,25 +78,27 @@ export default function DifficultySheet({ open, value, onClose, category, onStar
                   <button
                     key={opt.key}
                     onClick={() => {
-                      const isLocked = opt.key === 'hard' && !isPremium;
-                      if (!isLocked) handleDifficultySelect(opt.key);
+                      if (opt.key === 'hard' && !isPremium) {
+                        onClose();
+                        navigate('/paywall');
+                      } else {
+                        handleDifficultySelect(opt.key);
+                      }
                     }}
-                    className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border text-left no-select transition-all ${
+                    className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border text-left no-select transition-all active:scale-[0.98] ${
                       difficulty === opt.key
                         ? 'bg-primary/10 border-primary'
-                        : opt.key === 'hard' && !isPremium
-                        ? 'bg-surface-1 border-border opacity-50 cursor-default'
-                        : 'bg-surface-2 border-border active:scale-[0.98]'
+                        : 'bg-surface-2 border-border'
                     }`}
                   >
                     <div className="flex-1">
-                      <p className={`text-sm font-semibold ${opt.key === 'hard' && !isPremium ? 'text-muted-foreground' : 'text-foreground'}`}>
+                      <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                         {opt.label}
-                        {opt.key === 'hard' && !isPremium && <Lock size={11} className="inline ml-1.5 text-neon-orange" />}
+                        {opt.key === 'hard' && !isPremium && <Lock size={11} className="text-neon-orange" />}
                       </p>
                       <p className="text-xs text-muted-foreground mt-0.5">{opt.desc}</p>
                     </div>
-                    {difficulty === opt.key && !(opt.key === 'hard' && !isPremium) && (
+                    {difficulty === opt.key && (
                       <Check size={16} className="text-primary shrink-0" />
                     )}
                   </button>
