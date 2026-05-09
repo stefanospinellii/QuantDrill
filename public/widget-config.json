@@ -1,0 +1,44 @@
+{
+  "name": "QuantDrill Widget",
+  "description": "Shows your current streak and today's training status.",
+  "sizes": ["small"],
+  "deepLink": "quantdrill://drill",
+  "design": {
+    "background": "#12082A",
+    "accent": "#7C3AED",
+    "textPrimary": "#F5F5F5",
+    "textSecondary": "#9CA3AF",
+    "streakIcon": "flame",
+    "streakColor": "#F97316",
+    "completedColor": "#22C55E",
+    "pendingColor": "#6B7280"
+  },
+  "fields": [
+    {
+      "id": "streak_count",
+      "label": "Streak",
+      "source": "user.streak_count",
+      "icon": "flame",
+      "iconColor": "#F97316"
+    },
+    {
+      "id": "trained_today",
+      "label": "Trained Today",
+      "source": "user.last_active_date",
+      "transform": "isToday",
+      "trueIcon": "checkmark.circle.fill",
+      "trueColor": "#22C55E",
+      "falseIcon": "circle",
+      "falseColor": "#6B7280"
+    }
+  ],
+  "layout": {
+    "type": "small_2x2",
+    "rows": [
+      { "type": "logo", "text": "QuantDrill" },
+      { "type": "metric", "field": "streak_count", "size": "large" },
+      { "type": "status", "field": "trained_today", "size": "small" }
+    ]
+  },
+  "note": "iOS widget requires a native Swift Widget Extension. This config file describes the intended design and data mapping. Implement using WidgetKit + SwiftUI in Xcode, reading streak_count and last_active_date from shared UserDefaults (App Group) synced from the WebView layer."
+}

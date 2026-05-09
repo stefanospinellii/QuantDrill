@@ -7,27 +7,30 @@ import MobileHeader from '@/components/MobileHeader';
 const PLANS = [
   {
     key: 'monthly',
-    label: 'Monthly',
-    price: '$9.99',
+    label: 'Pro Monthly',
+    price: '€9.99',
     period: '/mo',
     badge: null,
-    perDay: '$0.33/day',
+    perDay: '€0.33/day',
+    url: 'https://quantdrill.com/subscribe?plan=monthly',
   },
   {
     key: 'yearly',
-    label: 'Yearly',
-    price: '$59.99',
+    label: 'Pro Annual',
+    price: '€59.99',
     period: '/yr',
     badge: 'Best Value',
-    perDay: '$0.16/day · Save 50%',
+    perDay: '€0.16/day · Save 50%',
+    url: 'https://quantdrill.com/subscribe?plan=yearly',
   },
   {
     key: 'lifetime',
-    label: 'Lifetime',
-    price: '$149',
+    label: 'Early Adopter Lifetime',
+    price: '€179',
     period: 'once',
-    badge: null,
+    badge: '🔥 Limited',
     perDay: 'Pay once, train forever',
+    url: 'https://quantdrill.com/subscribe?plan=lifetime',
   },
 ];
 
@@ -62,10 +65,26 @@ const PREMIUM_FEATURES = [
 export default function Paywall({ onClose }) {
   const navigate = useNavigate();
   const [selected, setSelected] = useState('yearly');
+  const [loading, setLoading] = useState(false);
 
   const handleClose = () => {
     if (onClose) onClose();
     else navigate(-1);
+  };
+
+  const handleCheckout = async () => {
+    const plan = PLANS.find(p => p.key === selected);
+    if (!plan) return;
+    setLoading(true);
+    try {
+      const { base44 } = await import('@/api/base44Client');
+      const res = await base44.functions.invoke('stripeCheckout', { plan: selected });
+      if (res.data?.url) {
+        window.open(res.data.url, '_blank');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -162,8 +181,16 @@ export default function Paywall({ onClose }) {
           transition={{ delay: 0.28 }}
           className="mt-auto"
         >
-          <button className="w-full bg-primary text-primary-foreground font-grotesk font-bold text-base py-4 rounded-2xl glow-purple active:scale-95 transition-all no-select mb-3">
-            Train Without Limits →
+          <button
+            onClick={handleCheckout}
+            disabled={loading}
+            className="w-full bg-primary text-primary-foreground font-grotesk font-bold text-base py-4 rounded-2xl glow-purple active:scale-95 transition-all no-select mb-3 disabled:opacity-60 flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <>Train Without Limits →</>
+            )}
           </button>
           <p className="text-center text-xs text-muted-foreground">
             Cancel anytime · No ads · Secure payment

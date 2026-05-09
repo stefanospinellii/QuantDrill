@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
-import { Flame, Zap, Settings, ChevronRight, Lock } from 'lucide-react';
+import { Flame, Zap, Settings, ChevronRight } from 'lucide-react';
 import { hasCompletedTodaysSprint, isStreakAlive } from '@/lib/streakUtils';
 import SettingsModal from '@/components/SettingsModal';
 import DifficultySheet from '@/components/DifficultySheet';
 import CategoryCards from '@/components/CategoryCards';
-import { getDrillAccess, FREE_DAILY_LIMIT } from '@/lib/freemium';
+import { getDrillAccess } from '@/lib/freemium';
 import BenchmarkMetrics from '@/components/BenchmarkMetrics';
+import DailyLimitModal from '@/components/DailyLimitModal';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [diffSheetOpen, setDiffSheetOpen] = useState(false);
+  const [limitModalOpen, setLimitModalOpen] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -108,32 +110,16 @@ export default function Home() {
       {/* ── Daily Drill CTA (Primary) ── */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}>
         {/* Big CTA */}
-        {drillAllowed ? (
-          <button
-            onClick={() => setDiffSheetOpen(true)}
-            className="w-full bg-primary text-primary-foreground font-grotesk font-bold text-lg py-5 rounded-2xl glow-purple transition-all duration-200 active:scale-95 flex items-center justify-center gap-3 no-select"
-          >
-            <Zap size={22} />
-            {completedToday ? 'Train Now' : 'Start Daily Drill'}
-            <ChevronRight size={20} />
-          </button>
-        ) : (
-          <button
-            onClick={() => navigate('/paywall')}
-            className="w-full bg-surface-2 border border-border text-foreground font-grotesk font-bold text-lg py-5 rounded-2xl transition-all duration-200 active:scale-95 flex items-center justify-center gap-3 no-select"
-          >
-            <Lock size={20} className="text-muted-foreground" />
-            Daily Limit Reached
-            <ChevronRight size={20} className="text-muted-foreground" />
-          </button>
-        )}
+        <button
+          onClick={() => drillAllowed ? setDiffSheetOpen(true) : setLimitModalOpen(true)}
+          className="w-full bg-primary text-primary-foreground font-grotesk font-bold text-lg py-5 rounded-2xl glow-purple transition-all duration-200 active:scale-95 flex items-center justify-center gap-3 no-select"
+        >
+          <Zap size={22} />
+          {completedToday ? 'Train Now' : 'Start Daily Drill'}
+          <ChevronRight size={20} />
+        </button>
         <p className="text-center text-xs text-muted-foreground mt-2.5">
-          {isPremium
-            ? 'Tap to choose difficulty & duration'
-            : drillAllowed
-              ? `${remaining} of ${FREE_DAILY_LIMIT} free sessions today`
-              : 'Upgrade to train without limits'
-          }
+          {isPremium ? 'Tap to choose difficulty & duration' : 'Tap to start your daily drill'}
         </p>
       </motion.div>
 
@@ -143,6 +129,7 @@ export default function Home() {
       </motion.div>
 
       {/* ── Modals ── */}
+      <DailyLimitModal open={limitModalOpen} onClose={() => setLimitModalOpen(false)} />
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <DifficultySheet
         open={diffSheetOpen}
