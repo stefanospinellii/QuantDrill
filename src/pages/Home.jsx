@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
 import { Flame, Zap, Settings, ChevronRight } from 'lucide-react';
 import { hasCompletedTodaysSprint, isStreakAlive } from '@/lib/streakUtils';
+import { useAuth } from '@/lib/AuthContext';
 
 import DifficultySheet from '@/components/DifficultySheet';
 import CategoryCards from '@/components/CategoryCards';
@@ -15,6 +16,8 @@ import SettingsModal from '@/components/SettingsModal';
 
 export default function Home() {
   const navigate = useNavigate();
+  const { refetchUser } = useAuth();
+  const [searchParams] = useSearchParams();
   const [user, setUser] = useState(null);
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,15 +31,25 @@ export default function Home() {
   useEffect(() => {
     async function load() {
       try {
-        const u = await base44.auth.me();
-        setUser(u);
-        const s = await base44.entities.Session.filter({ created_by: u.email }, '-created_date', 20);
-        setSessions(s);
+        // Check if returning from Stripe checkout
+        const paymentParam = searchParams.get('payment');
+        if (paymentParam === 'success') {
+          // Refetch user to sync is_premium from backend
+          const u = await refetchUser();
+          setUser(u);
+        } else {
+          const u = await base44.auth.me();
+          setUser(u);
+        }
+        if (user?.email) {
+          const s = await base44.entities.Session.filter({ created_by: user.email }, '-created_date', 20);
+          setSessions(s);
+        }
       } catch (e) {}
       finally { setLoading(false); }
     }
     load();
-  }, []);
+  }, [refetchUser, searchParams, user?.email]);
 
   const lastActive = user?.last_active_date;
   const streakAlive = isStreakAlive(lastActive);

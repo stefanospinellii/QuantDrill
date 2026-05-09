@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Zap, BarChart2, Award, Infinity as InfinityIcon, Lock, CheckCircle } from 'lucide-react';
 import MobileHeader from '@/components/MobileHeader';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 
 const PLANS = [
   { key: 'monthly',  label: 'Pro Monthly',  price: '€9.99',  period: '/ month',  badge: null,         sub: 'Billed monthly' },
@@ -21,6 +22,7 @@ const PREMIUM_FEATURES = [
 
 export default function Paywall({ onClose }) {
   const navigate = useNavigate();
+  const { refetchUser } = useAuth();
   const [selected, setSelected] = useState('yearly');
   const [loading, setLoading] = useState(false);
 
@@ -38,21 +40,22 @@ export default function Paywall({ onClose }) {
     setPremiumStatus('checking');
     checkPremium();
     return () => clearInterval(pollRef.current);
-  }, []);
+  }, [refetchUser]);
 
   const checkPremium = async () => {
     try {
-      const user = await base44.auth.me();
+      // Immediately refetch user from auth context (updates global state)
+      const user = await refetchUser();
       if (user?.is_premium) {
         setPremiumStatus('active');
         clearInterval(pollRef.current);
         setTimeout(() => navigate('/'), 2000);
       } else {
         setPremiumStatus('pending');
-        // Poll every 3 seconds
+        // Poll every 3 seconds as fallback
         pollRef.current = setInterval(async () => {
           try {
-            const u = await base44.auth.me();
+            const u = await refetchUser();
             if (u?.is_premium) {
               setPremiumStatus('active');
               clearInterval(pollRef.current);

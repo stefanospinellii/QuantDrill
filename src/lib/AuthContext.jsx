@@ -130,6 +130,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const refetchUser = async () => {
+    try {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      return currentUser;
+    } catch (error) {
+      console.error('Failed to refetch user:', error);
+      return null;
+    }
+  };
+
   const logout = (shouldRedirect = true) => {
     setUser(null);
     setIsAuthenticated(false);
@@ -159,7 +170,8 @@ export const AuthProvider = ({ children }) => {
       logout,
       navigateToLogin,
       checkUserAuth,
-      checkAppState
+      checkAppState,
+      refetchUser
     }}>
       {children}
     </AuthContext.Provider>

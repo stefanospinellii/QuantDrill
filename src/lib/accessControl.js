@@ -19,7 +19,7 @@ export function getUserAccess(user, category, difficulty) {
   // No user = no access
   if (!user) return false;
 
-  const isPremium = user.stripe_customer_id && user.subscription_status === 'active';
+  const isPremium = user?.is_premium === true;
 
   // Premium users get everything
   if (isPremium) return true;
@@ -48,7 +48,7 @@ export function getUserAccess(user, category, difficulty) {
  * @returns {Object} - Debug info with isPremium status and access matrix
  */
 export function accessDebugInfo(user) {
-  const isPremium = user?.stripe_customer_id && user?.subscription_status === 'active';
+  const isPremium = user?.is_premium === true;
 
   const allCategories = ['daily', 'mental_math', 'percentages_growth', 'business_math', 'gmat_quant', 'market_sizing'];
   const difficulties = ['easy', 'medium', 'hard'];
@@ -65,8 +65,7 @@ export function accessDebugInfo(user) {
   return {
     user: user?.email || 'none',
     isPremium,
-    subscription_status: user?.subscription_status || 'none',
-    stripe_customer_id: user?.stripe_customer_id || 'none',
+    is_premium_field: user?.is_premium || false,
     categoryAccess,
   };
 }
