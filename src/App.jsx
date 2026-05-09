@@ -63,15 +63,13 @@ function App() {
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <SplashScreen onDone={() => setSplashDone(true)} />
-        {splashDone && (
-          <Router>
-            <Routes>
-              <Route path="/success" element={<PageTransition><PaymentSuccess /></PageTransition>} />
-              <Route path="/payment-success" element={<PageTransition><PaymentSuccess /></PageTransition>} />
-              <Route path="*" element={<AuthenticatedApp />} />
-            </Routes>
-          </Router>
-        )}
+        <Router>
+          <Routes>
+            <Route path="/payment-success" element={<PageTransition><PaymentSuccess /></PageTransition>} />
+            <Route path="/success" element={<PageTransition><PaymentSuccess /></PageTransition>} />
+            <Route path="*" element={splashDone ? <AuthenticatedApp /> : null} />
+          </Routes>
+        </Router>
         <Toaster />
       </QueryClientProvider>
     </AuthProvider>
