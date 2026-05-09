@@ -77,7 +77,7 @@ export default function Paywall({ onClose }) {
     try {
       const res = await base44.functions.invoke('stripeCheckout', { plan: planKey });
       if (res.data?.url) {
-        window.location.href = res.data.url;
+        window.open(res.data.url, '_top');
       }
     } finally {
       setLoading(false);
