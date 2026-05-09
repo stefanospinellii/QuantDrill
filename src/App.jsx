@@ -67,6 +67,7 @@ function App() {
           <Router>
             <Routes>
               <Route path="/success" element={<PageTransition><PaymentSuccess /></PageTransition>} />
+              <Route path="/payment-success" element={<PageTransition><PaymentSuccess /></PageTransition>} />
               <Route path="*" element={<AuthenticatedApp />} />
             </Routes>
           </Router>

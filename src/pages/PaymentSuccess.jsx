@@ -11,7 +11,7 @@ export default function PaymentSuccess() {
         initial={{ opacity: 0, scale: 0.85 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ type: 'spring', damping: 20, stiffness: 200 }}
-        className="flex flex-col items-center gap-6"
+        className="flex flex-col items-center gap-6 max-w-xs"
       >
         <div className="w-20 h-20 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
           <CheckCircle size={40} className="text-emerald-400" />
@@ -19,10 +19,10 @@ export default function PaymentSuccess() {
 
         <div>
           <h1 className="text-2xl font-grotesk font-black text-foreground mb-2">
-            Payment Successful!
+            Payment successful 🎉
           </h1>
-          <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">
-            You are now <span className="text-neon-purple font-semibold">Pro</span>. All premium features are unlocked and ready for you.
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            Thank you for your purchase! You can now return to the home page to access your premium features.
           </p>
         </div>
 
@@ -34,12 +34,8 @@ export default function PaymentSuccess() {
           className="bg-primary text-primary-foreground font-grotesk font-bold text-lg px-8 py-4 rounded-2xl glow-purple flex items-center gap-2 active:scale-95 transition-transform no-select"
         >
           <Zap size={20} />
-          Start Training
+          Go to Home
         </motion.button>
-
-        <p className="text-xs text-muted-foreground">
-          Your account has been upgraded. Welcome to the Pro tier.
-        </p>
       </motion.div>
     </div>
   );
