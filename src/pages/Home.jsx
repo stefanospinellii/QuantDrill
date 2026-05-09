@@ -119,35 +119,25 @@ export default function Home() {
       <motion.div
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
-        className={`rounded-2xl px-4 py-3 flex items-center justify-between gap-3 border ${
+        className={`rounded-2xl px-4 py-3 flex items-center gap-3 border ${
           completedToday
             ? 'bg-surface-2 border-neon-cyan/20'
             : 'bg-primary/10 border-primary/30'
         }`}
       >
-        <div className="flex items-center gap-3">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-            completedToday ? 'bg-neon-cyan/10' : 'bg-primary/20'
-          }`}>
-            <Zap size={16} className={completedToday ? 'text-neon-cyan' : 'text-primary'} />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-foreground">
-              {completedToday ? 'Drill Complete ⚡' : 'Your daily drill is waiting'}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {completedToday ? 'You\'ve locked in today\'s training.' : 'Keep your streak alive by completing it now'}
-            </p>
-          </div>
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+          completedToday ? 'bg-neon-cyan/10' : 'bg-primary/20'
+        }`}>
+          <Zap size={16} className={completedToday ? 'text-neon-cyan' : 'text-primary'} />
         </div>
-        {!completedToday && (
-          <button
-            onClick={() => drillAllowed ? setDiffSheetOpen(true) : setLimitModalOpen(true)}
-            className="shrink-0 bg-primary text-primary-foreground font-grotesk font-bold text-xs px-3 py-2 rounded-xl no-select active:scale-95 transition-transform"
-          >
-            Start Drill
-          </button>
-        )}
+        <div>
+          <p className="text-sm font-semibold text-foreground">
+            {completedToday ? 'Drill Complete ⚡' : 'Your daily drill is waiting'}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {completedToday ? 'You\'ve locked in today\'s training.' : 'Keep your streak alive by completing it now'}
+          </p>
+        </div>
       </motion.div>
 
       {/* ── Daily Drill CTA (Primary) ── */}
