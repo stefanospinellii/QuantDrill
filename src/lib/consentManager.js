@@ -79,3 +79,38 @@ export function rejectAll() {
     marketing: false,
   });
 }
+
+/**
+ * Initialize analytics only if user has given consent
+ * 
+ * IMPORTANT: Any future analytics integration (Google Analytics, Posthog, Mixpanel, Amplitude, etc.)
+ * must call isAnalyticsAllowed() before initializing the tracking script.
+ * 
+ * Example:
+ *   if (isAnalyticsAllowed()) {
+ *     // Initialize your analytics library here
+ *     initGoogleAnalytics();
+ *     // or
+ *     initPosthog();
+ *   }
+ * 
+ * This ensures GDPR compliance and respects user cookie preferences.
+ */
+export function initAnalytics() {
+  if (!isAnalyticsAllowed()) {
+    console.log('Analytics disabled: user has not consented');
+    return;
+  }
+
+  // Placeholder for future analytics initialization
+  // This will be called after the app loads if user consent exists
+  console.log('Analytics consent detected: ready to initialize tracking');
+  
+  // Future analytics integrations should be placed here:
+  // - Google Analytics (gtag)
+  // - Posthog
+  // - Mixpanel
+  // - Amplitude
+  // - Segment
+  // etc.
+}

@@ -99,23 +99,23 @@ export default function CookieBanner() {
                 We use cookies to ensure the app works correctly and, with your consent, to analyze usage and improve your experience.
               </p>
 
-              {/* Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3 mb-4">
+              {/* Buttons — stack on <360px, side-by-side on larger */}
+              <div className="flex flex-col gap-2 mb-4 xs:flex-row xs:gap-3">
                 <button
                   onClick={handleRejectAll}
-                  className="px-4 py-2.5 bg-surface-2 border border-border text-foreground text-sm font-semibold rounded-lg no-select hover:border-primary/50 transition-colors active:scale-95"
+                  className="px-4 py-2.5 bg-surface-2 border border-border text-foreground text-sm font-semibold rounded-lg no-select hover:border-primary/50 transition-colors active:scale-95 flex-1"
                 >
                   Reject All
                 </button>
                 <button
                   onClick={() => setShowModal(true)}
-                  className="px-4 py-2.5 bg-surface-2 border border-border text-foreground text-sm font-semibold rounded-lg no-select hover:border-primary/50 transition-colors active:scale-95"
+                  className="px-4 py-2.5 bg-surface-2 border border-border text-foreground text-sm font-semibold rounded-lg no-select hover:border-primary/50 transition-colors active:scale-95 flex-1"
                 >
                   Manage Preferences
                 </button>
                 <button
                   onClick={handleAcceptAll}
-                  className="px-4 py-2.5 bg-primary text-primary-foreground text-sm font-semibold rounded-lg no-select active:scale-95 transition-transform"
+                  className="px-4 py-2.5 bg-primary text-primary-foreground text-sm font-semibold rounded-lg no-select active:scale-95 transition-transform flex-1"
                 >
                   Accept All
                 </button>

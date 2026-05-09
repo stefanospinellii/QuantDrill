@@ -19,6 +19,7 @@ import Badges from '@/pages/Badges';
 import Paywall from '@/pages/Paywall';
 import Privacy from '@/pages/Privacy';
 import Terms from '@/pages/Terms';
+import EmailVerification from '@/pages/EmailVerification';
 import CookieBanner from '@/components/CookieBanner';
 
 const AuthenticatedApp = () => {
@@ -59,6 +60,7 @@ const AuthenticatedApp = () => {
     <AnimatePresence mode="wait" initial={false}>
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route path="/verify-email" element={<EmailVerification />} />
         <Route element={<Layout />}>
           <Route path="/home" element={<Home />} />
           <Route path="/progress" element={<Progress />} />
