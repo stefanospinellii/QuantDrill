@@ -1,4 +1,4 @@
-// QuantDrill Badge Definitions Part 3 (200 badges - final section)
+// QuantDrill Badge Definitions Part 3 (197 badges - final section)
 
 export const BADGES_PART_3 = [
   // ── Difficulty Badges (15) ─────────────────────────────────────────
@@ -269,40 +269,7 @@ export const BADGES_PART_3 = [
     check: ({ trainedBirthday }) => (trainedBirthday ?? false),
   },
 
-  // ── Special Milestones (25) ────────────────────────────────────────
-  {
-    id: 'milestone_first',
-    label: 'First Rep',
-    description: 'Complete your first drill',
-    category: 'special',
-    emoji: '🎯',
-    color: 'text-neon-cyan',
-    bg: 'bg-neon-cyan/10',
-    border: 'border-neon-cyan/30',
-    check: ({ totalDrills }) => totalDrills >= 1,
-  },
-  {
-    id: 'milestone_perfect',
-    label: 'Perfect Execution',
-    description: 'Score 100/100 in any drill',
-    category: 'special',
-    emoji: '✨',
-    color: 'text-neon-cyan',
-    bg: 'bg-neon-cyan/10',
-    border: 'border-neon-cyan/30',
-    check: ({ maxScore }) => maxScore >= 100,
-  },
-  {
-    id: 'milestone_hard',
-    label: 'Hard Mode Pioneer',
-    description: 'Complete your first hard mode session',
-    category: 'special',
-    emoji: '🔥',
-    color: 'text-neon-orange',
-    bg: 'bg-orange-500/10',
-    border: 'border-orange-500/30',
-    check: ({ hardCount }) => (hardCount ?? 0) >= 1,
-  },
+  // ── Special Milestones (22 — 3 removed as duplicates) ──────────────────────────────────────────
   {
     id: 'milestone_premium',
     label: 'Premium Access',
@@ -778,4 +745,37 @@ export const BADGES_PART_3 = [
     border: 'border-neon-cyan/30',
     check: ({ streak }) => streak >= 365,
   },
-];
+  {
+    id: 'fun_four_day_streak',
+    label: 'Four Day Forge',
+    description: 'Complete 4 consecutive days',
+    category: 'fun',
+    emoji: '🔥',
+    color: 'text-neon-orange',
+    bg: 'bg-orange-500/10',
+    border: 'border-orange-500/30',
+    check: ({ streak }) => streak >= 4,
+  },
+  {
+    id: 'fun_first_hundred',
+    label: 'Century Club',
+    description: 'Score 100+ in a single session',
+    category: 'fun',
+    emoji: '💯',
+    color: 'text-yellow-400',
+    bg: 'bg-yellow-500/10',
+    border: 'border-yellow-500/30',
+    check: ({ maxScore }) => maxScore >= 100,
+  },
+  {
+    id: 'fun_recovery_expert',
+    label: 'Recovery Expert',
+    description: 'Improve score by 20+ points from previous session',
+    category: 'fun',
+    emoji: '📈',
+    color: 'text-emerald-400',
+    bg: 'bg-emerald-500/10',
+    border: 'border-emerald-500/30',
+    check: ({ scoreRecovery20 }) => (scoreRecovery20 ?? false),
+  },
+  ];
