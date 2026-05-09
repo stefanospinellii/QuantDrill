@@ -58,7 +58,7 @@ export default function Badges() {
   const freeBadges = BADGES.filter(b => !PREMIUM_BADGE_IDS.has(b.id));
   const totalUnlocked = freeBadges.filter(b => b.check(ctx)).length;
   const totalPremiumUnlocked = isPremium ? BADGES.filter(b => PREMIUM_BADGE_IDS.has(b.id) && b.check(ctx)).length : 0;
-  const totalAll = isPremium ? BADGES.length : freeBadges.length;
+  const totalAll = BADGES.length;
   const totalEarned = totalUnlocked + totalPremiumUnlocked;
 
   const nextBadge = BADGES.find(b => !b.check(ctx) && (!PREMIUM_BADGE_IDS.has(b.id) || isPremium));
