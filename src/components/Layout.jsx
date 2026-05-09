@@ -115,6 +115,16 @@ export default function Layout() {
             <Settings size={16} />
             Settings
           </button>
+
+          {/* Upgrade to Pro (free users only) */}
+          {!isPremium && (
+            <button
+              onClick={() => navigate('/paywall')}
+              className="w-full mt-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-grotesk font-bold text-xs px-3 py-3 rounded-xl no-select active:scale-95 transition-transform"
+            >
+              Unlock Pro
+            </button>
+          )}
         </div>
       </aside>
 

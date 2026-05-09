@@ -45,24 +45,28 @@ export default function SettingsModal({ open, onClose }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 z-40 no-select"
+            className="fixed inset-0 bg-black/60 z-[9999] no-select"
           />
 
-          {/* Bottom sheet */}
+          {/* Centered Modal */}
           <motion.div
-            key="sheet"
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-            className="fixed bottom-0 inset-x-0 mx-auto w-full max-w-md bg-surface-1 border-t border-border rounded-t-3xl z-50 pb-safe"
+            key="modal"
+            initial={{ opacity: 0, scale: 0.92, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ type: 'spring', damping: 26, stiffness: 320 }}
+            className="fixed inset-x-5 z-[9999] mx-auto max-w-sm lg:max-w-md"
+            style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
           >
-            {/* Handle */}
-            <div className="flex justify-center pt-3 pb-1">
-              <div className="w-10 h-1 bg-surface-3 rounded-full" />
-            </div>
+            <div className="bg-surface-1 border border-border rounded-3xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-grotesk font-bold text-foreground">Settings</h2>
+                <button onClick={onClose} className="w-8 h-8 bg-surface-2 rounded-xl flex items-center justify-center no-select">
+                  <X size={16} className="text-muted-foreground" />
+                </button>
+              </div>
 
-            <div className="px-5 pt-3 pb-6">
+              <div>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-grotesk font-bold text-foreground">Settings</h2>
                 <button onClick={onClose} className="w-8 h-8 bg-surface-2 rounded-xl flex items-center justify-center no-select">
@@ -126,9 +130,10 @@ export default function SettingsModal({ open, onClose }) {
                 </motion.div>
               )}
             </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
-  );
-}
+            </div>
+            </motion.div>
+            </>
+            )}
+            </AnimatePresence>
+            );
+            }

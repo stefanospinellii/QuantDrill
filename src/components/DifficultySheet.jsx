@@ -45,22 +45,19 @@ export default function DifficultySheet({ open, value, onClose, category, onStar
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 z-40 no-select"
+            className="fixed inset-0 bg-black/60 z-[9999] no-select"
           />
           <motion.div
-            key="sheet"
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-            className="fixed bottom-0 inset-x-0 mx-auto w-full max-w-md bg-surface-1 border-t border-border rounded-t-3xl z-50 pb-safe"
+            key="modal"
+            initial={{ opacity: 0, scale: 0.92, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ type: 'spring', damping: 26, stiffness: 320 }}
+            className="fixed inset-x-5 z-[9999] mx-auto max-w-sm lg:max-w-md"
+            style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
           >
-            {/* Drag handle */}
-            <div className="flex justify-center pt-3 pb-1">
-              <div className="w-10 h-1 bg-surface-3 rounded-full" />
-            </div>
-
-            <div className="px-5 pt-3 pb-8">
+            <div className="bg-surface-1 border border-border rounded-3xl p-6 max-h-[90vh] overflow-y-auto">
+              <div>
               {/* Header */}
               <div className="flex items-center justify-between mb-5">
                 <h2 className="text-base font-grotesk font-bold text-foreground">Start Session</h2>
@@ -136,9 +133,10 @@ export default function DifficultySheet({ open, value, onClose, category, onStar
               </motion.button>
 
             </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
-  );
-}
+            </div>
+            </motion.div>
+            </>
+            )}
+            </AnimatePresence>
+            );
+            }

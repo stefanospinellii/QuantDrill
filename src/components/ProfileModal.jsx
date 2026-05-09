@@ -51,7 +51,7 @@ export default function ProfileModal({ open, onClose, user, isPremium }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 z-40 no-select"
+            className="fixed inset-0 bg-black/60 z-[9999] no-select"
           />
 
           {/* Modal */}
@@ -61,8 +61,8 @@ export default function ProfileModal({ open, onClose, user, isPremium }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ type: 'spring', damping: 26, stiffness: 320 }}
-            className="fixed inset-x-5 z-50 mx-auto max-w-sm"
-            style={{ top: '50%', transform: 'translateY(-50%)' }}
+            className="fixed inset-x-5 z-[9999] mx-auto max-w-sm lg:max-w-md"
+            style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
           >
             <div className="bg-surface-1 border border-border rounded-3xl p-6">
               {/* Close button */}
