@@ -37,11 +37,11 @@ Deno.serve(async (req) => {
     await base44.asServiceRole.entities.User.update(userId, updateData);
   }
 
+  // Subscription actually ended (period over) → revoke premium
   if (event.type === 'customer.subscription.deleted') {
     const sub = event.data.object;
     const customerId = sub.customer;
 
-    // Find user by stripe_customer_id
     const users = await base44.asServiceRole.entities.User.filter({ stripe_customer_id: customerId });
     if (users.length > 0) {
       await base44.asServiceRole.entities.User.update(users[0].id, {
@@ -49,6 +49,31 @@ Deno.serve(async (req) => {
         stripe_subscription_id: null,
         subscription_plan: null,
       });
+    }
+  }
+
+  // Subscription scheduled to cancel at period end → keep premium until then, do NOT revoke now
+  if (event.type === 'customer.subscription.updated') {
+    const sub = event.data.object;
+    const customerId = sub.customer;
+
+    if (sub.cancel_at_period_end === true) {
+      // User cancelled via portal — access remains until period ends, nothing to revoke yet
+      // Optionally mark as cancelling so UI can show a notice
+      const users = await base44.asServiceRole.entities.User.filter({ stripe_customer_id: customerId });
+      if (users.length > 0) {
+        await base44.asServiceRole.entities.User.update(users[0].id, {
+          subscription_cancel_at_period_end: true,
+        });
+      }
+    } else if (sub.cancel_at_period_end === false && sub.status === 'active') {
+      // User reversed the cancellation
+      const users = await base44.asServiceRole.entities.User.filter({ stripe_customer_id: customerId });
+      if (users.length > 0) {
+        await base44.asServiceRole.entities.User.update(users[0].id, {
+          subscription_cancel_at_period_end: false,
+        });
+      }
     }
   }
 

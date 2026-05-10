@@ -37,6 +37,11 @@
       "format": "date",
       "description": "Date when the subscription expires"
     },
+    "subscription_cancel_at_period_end": {
+      "type": "boolean",
+      "description": "Whether the subscription is scheduled to cancel at period end (user cancelled but access still active)",
+      "default": false
+    },
     "reminder_time": {
       "type": "string",
       "description": "Daily reminder time in HH:MM format (24-hour)",

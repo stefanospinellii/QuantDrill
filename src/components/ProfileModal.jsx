@@ -1,19 +1,12 @@
 import { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronRight, LogOut, Trash2, AlertTriangle } from 'lucide-react';
+import { X, ChevronRight } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getSessionsForUser } from '@/lib/querySafety';
-import { queryClientInstance } from '@/lib/query-client';
-import CancellationRetentionFlow from './CancellationRetentionFlow';
-import ReminderSettings from './ReminderSettings';
 
-function clearUserCache() {
-  queryClientInstance.clear();
-  sessionStorage.removeItem('qd_splash_shown');
-}
-
-function getInitials(email) {
+function getInitials(name, email) {
+  if (name && name.trim()) return name.trim().slice(0, 2).toUpperCase();
   return email?.split('@')[0]?.slice(0, 2).toUpperCase() || '?';
 }
 
@@ -22,59 +15,33 @@ function formatDate(date) {
   return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-export default function ProfileModal({ open, onClose, user, isPremium }) {
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [showCancellation, setShowCancellation] = useState(false);
-  const [showReminders, setShowReminders] = useState(false);
-  const [badgesCount, setBadgesCount] = useState(0);
+export default function ProfileModal({ open, onClose, user, isPremium, onUserUpdate }) {
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState('');
   const [savingName, setSavingName] = useState(false);
 
+  // Reset edit state when modal closes
   useEffect(() => {
-    if (showReminders || showCancellation) return;
-    async function loadBadges() {
-      try {
-        const sessions = user?.id ? await getSessionsForUser(user.id, '-created_date', 1000) : [];
-        const uniqueDifficulties = new Set(sessions.map(s => s.difficulty));
-        const uniqueCategories = new Set(sessions.map(s => s.category));
-        let count = uniqueDifficulties.size + uniqueCategories.size;
-        setBadgesCount(count);
-      } catch (e) {}
-    }
-    loadBadges();
-  }, [open, user, showReminders, showCancellation]);
-
-  const handleSaveName = async () => {
-    if (!nameValue.trim()) return;
-    setSavingName(true);
-    try {
-      await base44.auth.updateMe({ full_name: nameValue.trim() });
-      window.location.reload();
-    } catch (e) {
+    if (!open) {
+      setEditingName(false);
+      setNameValue('');
       setSavingName(false);
     }
-  };
+  }, [open]);
 
-  const handleLogout = () => {
-    clearUserCache();
-    base44.auth.logout('/');
-  };
-
-  const handleDeleteAccount = async () => {
-    setDeleting(true);
+  const handleSaveName = async () => {
+    const trimmed = nameValue.trim();
+    if (!trimmed) return;
+    setSavingName(true);
     try {
-      if (user?.id) {
-        // GDPR: delete all Session records owned by this user before deleting account
-        const userSessions = await base44.asServiceRole.entities.Session.filter({ user_id: user.id });
-        await Promise.all(userSessions.map(s => base44.asServiceRole.entities.Session.delete(s.id)));
-        await base44.asServiceRole.entities.User.delete(user.id);
-      }
-      clearUserCache();
-      base44.auth.logout('/');
+      await base44.auth.updateMe({ full_name: trimmed });
+      // Update parent state immediately — no page refresh
+      if (onUserUpdate) onUserUpdate({ ...user, full_name: trimmed });
+      setEditingName(false);
     } catch (e) {
-      setDeleting(false);
+      // fail silently, keep editing open
+    } finally {
+      setSavingName(false);
     }
   };
 
@@ -103,195 +70,85 @@ export default function ProfileModal({ open, onClose, user, isPremium }) {
                 <X size={13} className="text-muted-foreground" />
               </button>
 
-              {!showDeleteConfirm ? (
-                <>
-                  {/* Profile section */}
-                  <div className="text-center mb-8">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center mx-auto mb-4">
-                      <span className="text-xl font-grotesk font-bold text-primary-foreground">
-                        {getInitials(user?.email)}
-                      </span>
-                    </div>
-                    {editingName ? (
-                      <div className="flex items-center gap-2 justify-center mb-1">
-                        <input
-                          autoFocus
-                          value={nameValue}
-                          onChange={e => setNameValue(e.target.value)}
-                          onKeyDown={e => { if (e.key === 'Enter') handleSaveName(); if (e.key === 'Escape') setEditingName(false); }}
-                          className="bg-surface-2 border border-primary rounded-lg px-3 py-1.5 text-sm font-semibold text-foreground text-center focus:outline-none w-40"
-                        />
-                        <button onClick={handleSaveName} disabled={savingName} className="text-xs font-bold text-primary no-select">
-                          {savingName ? '...' : 'Save'}
-                        </button>
-                        <button onClick={() => setEditingName(false)} className="text-xs text-muted-foreground no-select">✕</button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => { setNameValue(user?.full_name || ''); setEditingName(true); }}
-                        className="text-lg font-grotesk font-bold text-foreground mb-1 hover:text-primary transition-colors no-select group flex items-center gap-1.5 mx-auto"
-                      >
-                        {user?.full_name || 'User'}
-                        <span className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">✎</span>
-                      </button>
-                    )}
-                    <p className="text-sm text-muted-foreground mb-4">{user?.email}</p>
+              {/* Profile section */}
+              <div className="text-center mb-8">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center mx-auto mb-4">
+                  <span className="text-xl font-grotesk font-bold text-primary-foreground">
+                    {getInitials(user?.full_name, user?.email)}
+                  </span>
+                </div>
 
-                    {/* Subscription badge */}
-                    <div className={`inline-block px-4 py-2 rounded-full text-xs font-bold mb-4 ${
-                      isPremium
-                        ? 'bg-primary/10 text-primary'
-                        : 'bg-surface-2 border border-border text-muted-foreground'
-                    }`}>
-                      {isPremium ? '⭐ Pro Member' : 'Free'}
-                    </div>
-
-                    {/* Member since */}
-                    <p className="text-xs text-muted-foreground">
-                      Member since {formatDate(user?.created_date)}
-                    </p>
-                  </div>
-
-                  {/* Buttons */}
-                  <div className="space-y-2">
-                    {!isPremium && (
-                      <button
-                        onClick={() => {
-                          onClose();
-                          window.location.href = '/paywall';
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-4 bg-primary/10 border border-primary/20 rounded-2xl text-left no-select hover:bg-primary/15 transition-colors"
-                      >
-                        <div className="w-9 h-9 rounded-xl bg-primary/20 flex items-center justify-center">
-                          <span className="text-lg">⭐</span>
-                        </div>
-                        <div className="flex-1">
-                          <span className="text-sm font-semibold text-primary">Upgrade to Pro</span>
-                          <p className="text-xs text-muted-foreground">Unlimited drills & more</p>
-                        </div>
-                        <ChevronRight size={16} className="text-primary" />
-                      </button>
-                    )}
-
-                    {isPremium && (
-                      <button
-                        onClick={() => setShowCancellation(true)}
-                        className="w-full flex items-center gap-3 px-4 py-4 bg-surface-2 border border-border rounded-2xl text-left no-select hover:border-primary/50 transition-colors"
-                      >
-                        <div className="w-9 h-9 rounded-xl bg-surface-3 flex items-center justify-center">
-                          <span className="text-lg">⭐</span>
-                        </div>
-                        <div className="flex-1">
-                          <span className="text-sm font-semibold text-foreground">Manage Subscription</span>
-                          <p className="text-xs text-muted-foreground">Update billing & plan</p>
-                        </div>
-                        <ChevronRight size={16} className="text-muted-foreground" />
-                      </button>
-                    )}
-
-                    {/* Reminders */}
+                {editingName ? (
+                  <div className="flex items-center gap-2 justify-center mb-1">
+                    <input
+                      autoFocus
+                      value={nameValue}
+                      onChange={e => setNameValue(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') handleSaveName();
+                        if (e.key === 'Escape') setEditingName(false);
+                      }}
+                      className="bg-surface-2 border border-primary rounded-lg px-3 py-1.5 text-sm font-semibold text-foreground text-center focus:outline-none w-40"
+                    />
                     <button
-                      onClick={() => setShowReminders(true)}
-                      className="w-full flex items-center gap-3 px-4 py-4 bg-surface-2 border border-border rounded-2xl text-left no-select hover:border-primary/50 transition-colors"
+                      onClick={handleSaveName}
+                      disabled={savingName}
+                      className="text-xs font-bold text-primary no-select"
                     >
-                      <div className="w-9 h-9 rounded-xl bg-surface-3 flex items-center justify-center">
-                        <span className="text-lg">🔔</span>
-                      </div>
-                      <div className="flex-1">
-                        <span className="text-sm font-semibold text-foreground">Daily Reminder</span>
-                        <p className="text-xs text-muted-foreground">Never miss a drill</p>
-                      </div>
-                      <ChevronRight size={16} className="text-muted-foreground" />
+                      {savingName ? '...' : 'Save'}
                     </button>
-
-                    {/* Logout */}
                     <button
-                      onClick={handleLogout}
-                      className="w-full flex items-center gap-3 px-4 py-4 bg-surface-2 border border-border rounded-2xl text-left no-select hover:border-border/60 transition-colors"
+                      onClick={() => setEditingName(false)}
+                      className="text-xs text-muted-foreground no-select"
                     >
-                      <div className="w-9 h-9 rounded-xl bg-surface-3 flex items-center justify-center">
-                        <LogOut size={16} className="text-muted-foreground" />
-                      </div>
-                      <span className="text-sm font-medium text-foreground flex-1">Log Out</span>
-                      <ChevronRight size={16} className="text-muted-foreground" />
-                    </button>
-
-                    {/* Delete account */}
-                    <button
-                      onClick={() => setShowDeleteConfirm(true)}
-                      className="w-full flex items-center gap-3 px-4 py-4 bg-red-500/5 border border-red-500/20 rounded-2xl text-left no-select hover:bg-red-500/10 transition-colors"
-                    >
-                      <div className="w-9 h-9 rounded-xl bg-red-500/10 flex items-center justify-center">
-                        <Trash2 size={16} className="text-red-400" />
-                      </div>
-                      <span className="text-sm font-medium text-red-400 flex-1">Delete Account</span>
-                      <ChevronRight size={16} className="text-red-400/60" />
+                      ✕
                     </button>
                   </div>
-                </>
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-4"
+                ) : (
+                  <button
+                    onClick={() => { setNameValue(user?.full_name || ''); setEditingName(true); }}
+                    className="text-lg font-grotesk font-bold text-foreground mb-1 hover:text-primary transition-colors no-select group flex items-center gap-1.5 mx-auto"
+                  >
+                    {user?.full_name || 'User'}
+                    <span className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">✎</span>
+                  </button>
+                )}
+
+                <p className="text-sm text-muted-foreground mb-4">{user?.email}</p>
+
+                {/* Subscription badge */}
+                <div className={`inline-block px-4 py-2 rounded-full text-xs font-bold mb-4 ${
+                  isPremium
+                    ? 'bg-primary/10 text-primary'
+                    : 'bg-surface-2 border border-border text-muted-foreground'
+                }`}>
+                  {isPremium ? '⭐ Pro Member' : 'Free'}
+                </div>
+
+                {/* Member since */}
+                <p className="text-xs text-muted-foreground">
+                  Member since {formatDate(user?.created_date)}
+                </p>
+              </div>
+
+              {/* Upgrade CTA for free users */}
+              {!isPremium && (
+                <button
+                  onClick={() => { onClose(); window.location.href = '/paywall'; }}
+                  className="w-full flex items-center gap-3 px-4 py-4 bg-primary/10 border border-primary/20 rounded-2xl text-left no-select hover:bg-primary/15 transition-colors"
                 >
-                  <div className="flex items-start gap-3 bg-red-500/10 border border-red-500/20 rounded-2xl p-4">
-                    <AlertTriangle size={18} className="text-red-400 mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-sm font-semibold text-foreground mb-1">Delete your account?</p>
-                      <p className="text-xs text-muted-foreground">This will permanently erase your streak, scores, and all progress. This cannot be undone.</p>
-                    </div>
+                  <div className="w-9 h-9 rounded-xl bg-primary/20 flex items-center justify-center">
+                    <span className="text-lg">⭐</span>
                   </div>
-
-                  <button
-                    onClick={handleDeleteAccount}
-                    disabled={deleting}
-                    className="w-full bg-red-500 text-white font-grotesk font-bold py-4 rounded-2xl no-select active:scale-95 transition-all disabled:opacity-60"
-                  >
-                    {deleting ? 'Deleting...' : 'Yes, Delete My Account'}
-                  </button>
-                  <button
-                    onClick={() => setShowDeleteConfirm(false)}
-                    className="w-full bg-surface-2 border border-border text-foreground font-semibold py-4 rounded-2xl no-select active:scale-95 transition-all"
-                  >
-                    Cancel
-                  </button>
-                </motion.div>
+                  <div className="flex-1">
+                    <span className="text-sm font-semibold text-primary">Upgrade to Pro</span>
+                    <p className="text-xs text-muted-foreground">Unlimited drills & more</p>
+                  </div>
+                  <ChevronRight size={16} className="text-primary" />
+                </button>
               )}
             </div>
           </motion.div>
-
-          {/* Reminder Settings Modal */}
-          {showReminders && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              className="fixed inset-0 flex items-center justify-center z-[10000]"
-              onClick={(e) => {
-                if (e.target === e.currentTarget) setShowReminders(false);
-              }}
-            >
-              <div className="w-full max-w-[480px] mx-5 bg-surface-1 border border-border rounded-3xl p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-grotesk font-bold text-foreground">Daily Reminder Settings</h2>
-                  <button onClick={() => setShowReminders(false)} className="w-8 h-8 bg-surface-2 rounded-xl flex items-center justify-center no-select">
-                    <X size={16} className="text-muted-foreground" />
-                  </button>
-                </div>
-                <ReminderSettings />
-              </div>
-            </motion.div>
-          )}
-
-          {/* Cancellation Retention Flow */}
-          <CancellationRetentionFlow
-            open={showCancellation}
-            onClose={() => setShowCancellation(false)}
-            user={user}
-            streakCount={user?.streak_count || 0}
-            badgesCount={badgesCount}
-          />
         </div>
       )}
     </AnimatePresence>
