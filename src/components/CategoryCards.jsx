@@ -97,9 +97,11 @@ export default function CategoryCards({ difficulty, user, onNeedsAuth }) {
           setSheetCategory(null);
           onNeedsAuth(settings);
         } : undefined}
-        onStart={({ difficulty: d, duration, category }) => {
+        onStart={({ difficulty: d, duration, category, pace }) => {
           setSheetCategory(null);
-          navigate(`/drill?difficulty=${d}&category=${category}&duration=${duration}`);
+          const params = new URLSearchParams({ difficulty: d, category, pace: pace || 'normal' });
+          if (duration) params.set('duration', duration);
+          navigate(`/drill?${params.toString()}`);
         }}
       />
     </div>

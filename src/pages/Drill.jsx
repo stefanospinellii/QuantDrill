@@ -7,14 +7,66 @@ import { calculateNewStreak, getTodayDate } from '@/lib/streakUtils';
 import GlobalTimer from '@/components/drill/GlobalTimer';
 import QuestionCard from '@/components/drill/QuestionCard';
 import MobileHeader from '@/components/MobileHeader';
+import { QUESTION_TIME_EXPECTATIONS } from '@/components/DifficultySheet';
+
+// Soft per-question urgency ring (Normal mode only, visual only — never enforces)
+function SoftTimerRing({ difficulty, questionStartTime }) {
+  const [elapsed, setElapsed] = useState(0);
+  const expected = QUESTION_TIME_EXPECTATIONS[difficulty] || 45;
+
+  useEffect(() => {
+    setElapsed(0);
+    const interval = setInterval(() => {
+      setElapsed((Date.now() - questionStartTime) / 1000);
+    }, 500);
+    return () => clearInterval(interval);
+  }, [questionStartTime]);
+
+  const progress = Math.min(1, elapsed / expected);
+  const r = 14, circ = 2 * Math.PI * r;
+
+  // Color shifts from muted → orange → red as time passes
+  const color = progress < 0.6
+    ? 'rgba(124,58,237,0.5)'
+    : progress < 0.85
+    ? 'rgba(255,153,51,0.7)'
+    : 'rgba(239,68,68,0.8)';
+
+  if (progress < 0.1) return null; // hide until 10% of expected time passes
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="flex items-center gap-2"
+    >
+      <svg width="34" height="34" style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx="17" cy="17" r={r} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="2.5" />
+        <circle
+          cx="17" cy="17" r={r} fill="none"
+          stroke={color}
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeDasharray={circ}
+          strokeDashoffset={circ * (1 - progress)}
+          style={{ transition: 'stroke 0.4s ease, stroke-dashoffset 0.5s ease' }}
+        />
+      </svg>
+    </motion.div>
+  );
+}
 
 export default function Drill() {
   const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
   const difficulty = urlParams.get('difficulty') || 'medium';
   const category = urlParams.get('category') || 'daily';
-  const durationMinutes = parseInt(urlParams.get('duration') || '5', 10);
-  const totalSeconds = durationMinutes * 60;
+  const durationParam = urlParams.get('duration');
+  const pace = urlParams.get('pace') || 'normal'; // 'normal' | 'fast'
+
+  // Fast-Paced: use duration param. Normal: no global timer.
+  const isFastPaced = pace === 'fast';
+  const totalSeconds = isFastPaced ? (parseInt(durationParam || '5', 10) * 60) : null;
 
   const [currentQ, setCurrentQ] = useState(() => generateQuestion(difficulty, category));
   const [answer, setAnswer] = useState('');
@@ -50,7 +102,7 @@ export default function Drill() {
     const score = calculateSessionScore(finalResults, difficulty);
     const speedRating = getSpeedRating(avgTime, difficulty);
     const speedPercentile = getSpeedPercentile(avgTime, difficulty);
-    const today = getTodayDate();
+    const durationMinutes = durationParam ? parseInt(durationParam, 10) : null;
 
     navigate('/results', {
       state: { score, accuracy, avgTime, speedRating, speedPercentile, difficulty, correct, total, category, durationMinutes },
@@ -60,17 +112,17 @@ export default function Drill() {
       try {
         const user = await base44.auth.me();
         await base44.entities.Session.create({
-          date: today, score, accuracy, avg_time: avgTime,
+          date: getTodayDate(), score, accuracy, avg_time: avgTime,
           difficulty, category,
           questions_answered: total, correct_count: correct,
           speed_rating: speedRating, percentile: speedPercentile,
           user_id: user?.id,
         });
         const newStreak = calculateNewStreak(user.streak_count || 0, user.last_active_date);
-        await base44.auth.updateMe({ streak_count: newStreak, last_active_date: today });
+        await base44.auth.updateMe({ streak_count: newStreak, last_active_date: getTodayDate() });
       } catch (_e) {}
     })();
-  }, [difficulty, category, durationMinutes, navigate]);
+  }, [difficulty, category, durationParam, navigate]);
 
   const handleTimerExpire = useCallback(() => {
     setSessionActive(false);
@@ -105,19 +157,17 @@ export default function Drill() {
   const correctCount = resultsRef.current.filter(r => r.correct).length;
   const totalAnswered = resultsRef.current.length;
 
-  // Difficulty badge config
-  const difficultyConfig = {
+  const diffConfig = {
     easy:   { label: 'Easy',   color: '#34D399', bg: 'rgba(52,211,153,0.1)',  border: 'rgba(52,211,153,0.2)' },
     medium: { label: 'Medium', color: '#a78bfa', bg: 'rgba(167,139,250,0.1)', border: 'rgba(167,139,250,0.2)' },
     hard:   { label: 'Hard',   color: '#FF9933', bg: 'rgba(255,153,51,0.1)',  border: 'rgba(255,153,51,0.2)' },
   };
-  const diff = difficultyConfig[difficulty] || difficultyConfig.medium;
+  const diff = diffConfig[difficulty] || diffConfig.medium;
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#0B0F14' }}>
       <MobileHeader title="" onBack={() => { setSessionActive(false); navigate('/'); }} />
 
-      {/* Ambient glow */}
       <div className="fixed pointer-events-none" style={{
         top: '-10%', left: '50%', transform: 'translateX(-50%)',
         width: 600, height: 600,
@@ -127,13 +177,15 @@ export default function Drill() {
 
       <div className="flex-1 flex flex-col w-full lg:max-w-xl lg:mx-auto lg:w-full relative z-10">
 
-        {/* Timer */}
-        <div className="mt-4">
-          <GlobalTimer totalSeconds={totalSeconds} onExpire={handleTimerExpire} isActive={sessionActive} />
-        </div>
+        {/* Global timer — Fast-Paced mode only */}
+        {isFastPaced && (
+          <div className="mt-4">
+            <GlobalTimer totalSeconds={totalSeconds} onExpire={handleTimerExpire} isActive={sessionActive} />
+          </div>
+        )}
 
         {/* Session header */}
-        <div className="flex items-center justify-between px-5 mb-4">
+        <div className={`flex items-center justify-between px-5 ${isFastPaced ? 'mb-4' : 'mt-5 mb-4'}`}>
           <div className="flex items-center gap-2">
             <span
               className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full"
@@ -141,6 +193,11 @@ export default function Drill() {
             >
               {diff.label}
             </span>
+            {isFastPaced && (
+              <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-full" style={{ color: 'hsl(174 100% 45%)', background: 'rgba(0,229,196,0.08)', border: '1px solid rgba(0,229,196,0.2)', letterSpacing: '0.1em' }}>
+                ⚡ Fast
+              </span>
+            )}
             <span className="text-[10px] text-muted-foreground uppercase tracking-widest" style={{ letterSpacing: '0.1em' }}>
               Q{questionCount + 1}
             </span>
@@ -153,7 +210,7 @@ export default function Drill() {
           </div>
         </div>
 
-        {/* Progress bar */}
+        {/* Accuracy progress bar */}
         {totalAnswered > 0 && (
           <div className="px-5 mb-5">
             <div className="h-0.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
@@ -186,7 +243,6 @@ export default function Drill() {
               transition: 'background 0.25s ease, border-color 0.25s ease',
             }}
           >
-            {/* Top edge glow */}
             <div className="absolute top-0 left-0 right-0 h-px" style={{
               background: flash === 'correct'
                 ? 'linear-gradient(90deg, transparent, rgba(52,211,153,0.4), transparent)'
@@ -196,12 +252,15 @@ export default function Drill() {
               transition: 'background 0.25s ease',
             }} />
 
+            {/* Soft urgency ring — Normal mode only */}
+            {!isFastPaced && flash === null && (
+              <div className="absolute top-4 right-4">
+                <SoftTimerRing difficulty={difficulty} questionStartTime={startTime} />
+              </div>
+            )}
+
             <AnimatePresence mode="wait">
-              <QuestionCard
-                key={questionCount}
-                question={currentQ}
-                questionNumber={questionCount + 1}
-              />
+              <QuestionCard key={questionCount} question={currentQ} questionNumber={questionCount + 1} />
             </AnimatePresence>
           </div>
 
@@ -243,22 +302,10 @@ export default function Drill() {
               className={shake ? 'animate-shake' : ''}
               style={{
                 borderRadius: 18,
-                background: flash === 'correct'
-                  ? 'rgba(52,211,153,0.05)'
-                  : flash === 'wrong'
-                  ? 'rgba(239,68,68,0.05)'
-                  : 'hsl(220 16% 12%)',
-                border: flash === 'correct'
-                  ? '1px solid rgba(52,211,153,0.3)'
-                  : flash === 'wrong'
-                  ? '1px solid rgba(239,68,68,0.3)'
-                  : '1px solid rgba(255,255,255,0.08)',
+                background: flash === 'correct' ? 'rgba(52,211,153,0.05)' : flash === 'wrong' ? 'rgba(239,68,68,0.05)' : 'hsl(220 16% 12%)',
+                border: flash === 'correct' ? '1px solid rgba(52,211,153,0.3)' : flash === 'wrong' ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(255,255,255,0.08)',
+                boxShadow: flash === 'correct' ? '0 0 20px rgba(52,211,153,0.1)' : flash === 'wrong' ? '0 0 20px rgba(239,68,68,0.1)' : 'none',
                 transition: 'all 0.22s ease',
-                boxShadow: flash === 'correct'
-                  ? '0 0 20px rgba(52,211,153,0.1)'
-                  : flash === 'wrong'
-                  ? '0 0 20px rgba(239,68,68,0.1)'
-                  : 'none',
               }}
             >
               <input
@@ -269,7 +316,7 @@ export default function Drill() {
                 onChange={handleChange}
                 placeholder="Type your answer..."
                 autoComplete="off"
-                className="w-full bg-transparent rounded-[18px] px-5 py-4 text-xl font-grotesk font-bold text-white placeholder:font-normal focus:outline-none"
+                className="w-full bg-transparent rounded-[18px] px-5 py-4 font-grotesk font-bold text-white placeholder:font-normal focus:outline-none"
                 style={{
                   fontSize: 'clamp(1.1rem, 4vw, 1.3rem)',
                   caretColor: 'hsl(262 83% 68%)',

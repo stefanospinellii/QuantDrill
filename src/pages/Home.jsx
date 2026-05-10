@@ -251,7 +251,9 @@ export default function Home() {
             if (pendingDrillSettings) {
               const { difficulty, duration, category } = pendingDrillSettings;
               setPendingDrillSettings(null);
-              navigate(`/drill?difficulty=${difficulty}&category=${category}&duration=${duration}`);
+              const p = new URLSearchParams({ difficulty, category, pace: 'normal' });
+              if (duration) p.set('duration', duration);
+              navigate(`/drill?${p.toString()}`);
             }
           }}
         />
@@ -267,8 +269,10 @@ export default function Home() {
           setPendingDrillSettings(settings);
           setLoginModalOpen(true);
         } : undefined}
-        onStart={({ difficulty, duration, category }) => {
-          navigate(`/drill?difficulty=${difficulty}&category=${category}&duration=${duration}`);
+        onStart={({ difficulty, duration, category, pace }) => {
+          const params = new URLSearchParams({ difficulty, category, pace: pace || 'normal' });
+          if (duration) params.set('duration', duration);
+          navigate(`/drill?${params.toString()}`);
         }}
       />
     </div>
