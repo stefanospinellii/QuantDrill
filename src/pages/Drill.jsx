@@ -8,6 +8,7 @@ import GlobalTimer from '@/components/drill/GlobalTimer';
 import QuestionCard from '@/components/drill/QuestionCard';
 import MobileHeader from '@/components/MobileHeader';
 import { QUESTION_TIME_EXPECTATIONS } from '@/components/DifficultySheet';
+import posthog from 'posthog-js';
 
 // Soft per-question urgency ring (Normal mode only, visual only — never enforces)
 function SoftTimerRing({ difficulty, questionStartTime }) {
@@ -78,7 +79,16 @@ export default function Drill() {
   const inputRef = useRef(null);
   const resultsRef = useRef([]);
 
-  useEffect(() => { setTimeout(() => inputRef.current?.focus(), 100); }, []);
+  useEffect(() => {
+    setTimeout(() => inputRef.current?.focus(), 100);
+    // Capture drill_started event
+    posthog.capture('drill_started', {
+      difficulty,
+      category,
+      duration: durationParam,
+      pace
+    });
+  }, []);
 
   useEffect(() => {
     setStartTime(Date.now());
@@ -103,6 +113,20 @@ export default function Drill() {
     const speedRating = getSpeedRating(avgTime, difficulty);
     const speedPercentile = getSpeedPercentile(avgTime, difficulty);
     const durationMinutes = durationParam ? parseInt(durationParam, 10) : null;
+
+    // Capture drill_completed event
+    posthog.capture('drill_completed', {
+      score,
+      accuracy,
+      avgTime,
+      speedRating,
+      speedPercentile,
+      difficulty,
+      correct,
+      total,
+      category,
+      durationMinutes
+    });
 
     navigate('/results', {
       state: { score, accuracy, avgTime, speedRating, speedPercentile, difficulty, correct, total, category, durationMinutes },

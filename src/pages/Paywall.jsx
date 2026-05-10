@@ -5,6 +5,7 @@ import { CheckCircle, Lock, Check } from 'lucide-react';
 import MobileHeader from '@/components/MobileHeader';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
+import posthog from 'posthog-js';
 
 const PLANS = [
   { key: 'monthly',  label: 'Pro Monthly',  price: '€9.99',  period: '/ month',   badge: null,          sub: 'Billed monthly' },
@@ -33,6 +34,11 @@ export default function Paywall({ onClose }) {
   const isPaymentSuccess = urlParams.get('payment') === 'success';
 
   const [premiumStatus, setPremiumStatus] = useState(null);
+
+  // Capture paywall_viewed on mount
+  useEffect(() => {
+    posthog.capture('paywall_viewed');
+  }, []);
 
   useEffect(() => {
     if (!isPaymentSuccess) return;
@@ -81,6 +87,10 @@ export default function Paywall({ onClose }) {
 
   const handleCheckout = async (planKey) => {
     setLoading(planKey);
+    // Capture upgrade_clicked event
+    posthog.capture('upgrade_clicked', {
+      plan: planKey
+    });
     try {
       const res = await base44.functions.invoke('stripeCheckout', { plan: planKey });
       if (res.data?.url) window.open(res.data.url, '_top');
