@@ -39,14 +39,16 @@ export default function SettingsModal({ open, onClose, user, isPremium }) {
     try {
       const u = user || await base44.auth.me();
       if (u?.id) {
-        // GDPR: delete all Session records owned by this user first
-        const userSessions = await base44.asServiceRole.entities.Session.filter({ user_id: u.id });
-        await Promise.all(userSessions.map(s => base44.asServiceRole.entities.Session.delete(s.id)));
-        await base44.asServiceRole.entities.User.delete(u.id);
+        // Delete all Session records owned by this user (user-scoped, user owns these)
+        const userSessions = await base44.entities.Session.filter({ user_id: u.id });
+        await Promise.all(userSessions.map(s => base44.entities.Session.delete(s.id)));
+        // Delete the user record (user-scoped self-delete)
+        await base44.entities.User.delete(u.id);
       }
       clearUserCache();
       base44.auth.logout('/');
     } catch (e) {
+      console.error('[DeleteAccount] failed:', e);
       setDeleting(false);
     }
   };
