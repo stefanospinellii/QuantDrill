@@ -4,7 +4,7 @@ import { getSessionsForUser } from '@/lib/querySafety';
 import { motion } from 'framer-motion';
 import { Lock, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { BADGES, CATEGORY_LABELS, computeBadgeContext, PREMIUM_BADGE_IDS } from '@/lib/badges';
+import { BADGES, FREE_BADGES, PRO_BADGES, TOTAL_BADGES, CATEGORY_LABELS, computeBadgeContext, PREMIUM_BADGE_IDS } from '@/lib/badges';
 
 const CATEGORY_KEYS = [
   'general',
@@ -56,11 +56,10 @@ export default function Badges() {
   const isPremium = user?.is_premium === true;
   const ctx = computeBadgeContext(sessions, user?.streak_count || 0);
 
-  const freeBadges = BADGES.filter(b => !PREMIUM_BADGE_IDS.has(b.id));
-  const totalFreeUnlocked = freeBadges.filter(b => b.check(ctx)).length;
-  const totalPremiumUnlocked = isPremium ? BADGES.filter(b => PREMIUM_BADGE_IDS.has(b.id) && b.check(ctx)).length : 0;
+  const freeBadges = FREE_BADGES;
+  const totalFreeUnlocked = FREE_BADGES.filter(b => b.check(ctx)).length;
+  const totalPremiumUnlocked = isPremium ? PRO_BADGES.filter(b => b.check(ctx)).length : 0;
   const totalEarned = totalFreeUnlocked + totalPremiumUnlocked;
-  const totalAll = BADGES.length;
 
   const nextBadge = BADGES.find(b => !b.check(ctx) && (!PREMIUM_BADGE_IDS.has(b.id) || isPremium));
 
@@ -141,7 +140,7 @@ export default function Badges() {
           <span className="text-xs text-muted-foreground">{ctx.totalDrills} drills completed</span>
           <span className="w-1 h-1 rounded-full bg-muted-foreground" />
           <span className="text-xs text-neon-cyan font-medium">
-            {totalEarned}/{totalAll} unlocked
+            {totalEarned}/{TOTAL_BADGES} unlocked
           </span>
         </div>
       </motion.div>

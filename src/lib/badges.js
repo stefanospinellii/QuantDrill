@@ -101,11 +101,12 @@ export function computeBadgeContext(sessions, streak) {
 }
 
 /**
- * First 22 badges (general + one per sub-category) are FREE.
- * All remaining 178 badges are PREMIUM.
- * This matches the marketing copy: "22 free / 200 pro".
+ * EXPLICIT ENTITLEMENT GROUPS — source of truth.
+ * FREE_BADGES  = exactly 22 items (always)
+ * PRO_BADGES   = exactly 178 items (always)
+ * TOTAL_BADGES = 200 (fixed constant — never derived from BADGES.length)
  */
-const FREE_BADGE_IDS = new Set([
+const FREE_BADGE_ID_LIST = [
   // 7 General
   'first_drill', 'streak_7', 'streak_30', 'drills_10', 'drills_100', 'drills_500', 'perfect_score',
   // 3 Mental Math
@@ -118,8 +119,15 @@ const FREE_BADGE_IDS = new Set([
   'estimation_expert', 'market_mapper', 'case_cracker',
   // 3 GMAT Quant
   'quant_sprint', 'gmat_grinder', 'quant_elite',
-]);
+];
 
-export const PREMIUM_BADGE_IDS = new Set(
-  BADGES.filter(b => !FREE_BADGE_IDS.has(b.id)).map(b => b.id)
-);
+const FREE_BADGE_ID_SET = new Set(FREE_BADGE_ID_LIST);
+
+export const FREE_BADGES  = BADGES.filter(b => FREE_BADGE_ID_SET.has(b.id));
+export const PRO_BADGES   = BADGES.filter(b => !FREE_BADGE_ID_SET.has(b.id));
+
+/** Fixed product constant — never use BADGES.length in UI */
+export const TOTAL_BADGES = 200;
+
+/** Kept for backwards compatibility with existing code */
+export const PREMIUM_BADGE_IDS = new Set(PRO_BADGES.map(b => b.id));
