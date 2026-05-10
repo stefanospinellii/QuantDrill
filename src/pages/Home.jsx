@@ -32,25 +32,23 @@ export default function Home() {
   useEffect(() => {
     async function load() {
       try {
-        // Check if returning from Stripe checkout
+        let u;
         const paymentParam = searchParams.get('payment');
         if (paymentParam === 'success') {
-          // Refetch user to sync is_premium from backend
-          const u = await refetchUser();
-          setUser(u);
+          u = await refetchUser();
         } else {
-          const u = await base44.auth.me();
-          setUser(u);
+          u = await base44.auth.me();
         }
-        if (user?.id) {
-          const s = await getSessionsForUser(user.id, '-created_date', 20);
+        setUser(u);
+        if (u?.id) {
+          const s = await getSessionsForUser(u.id, '-created_date', 20);
           setSessions(s);
         }
       } catch (e) {}
       finally { setLoading(false); }
     }
     load();
-  }, [refetchUser, searchParams, user?.id]);
+  }, [refetchUser, searchParams]);
 
   const lastActive = user?.last_active_date;
   const streakAlive = isStreakAlive(lastActive);
