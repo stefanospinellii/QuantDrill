@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle, Lock, Check } from 'lucide-react';
@@ -33,42 +33,48 @@ export default function Paywall({ onClose }) {
   const isPaymentSuccess = urlParams.get('payment') === 'success';
 
   const [premiumStatus, setPremiumStatus] = useState(null);
-  const pollRef = useRef(null);
 
   useEffect(() => {
     if (!isPaymentSuccess) return;
     setPremiumStatus('checking');
-    checkPremium();
-    return () => clearInterval(pollRef.current);
-  }, [refetchUser]);
 
-  const checkPremium = async () => {
-    try {
-      const user = await refetchUser();
-      if (user?.is_premium) {
+    let cancelled = false;
+
+    const run = async () => {
+      // First check after 3 seconds
+      await new Promise(r => setTimeout(r, 3000));
+      if (cancelled) return;
+
+      const u1 = await refetchUser();
+      if (cancelled) return;
+
+      if (u1?.is_premium) {
         setPremiumStatus('active');
-        clearInterval(pollRef.current);
+        setTimeout(() => navigate('/'), 2000);
+        return;
+      }
+
+      // Second and final check after 3 more seconds
+      await new Promise(r => setTimeout(r, 3000));
+      if (cancelled) return;
+
+      const u2 = await refetchUser();
+      if (cancelled) return;
+
+      if (u2?.is_premium) {
+        setPremiumStatus('active');
         setTimeout(() => navigate('/'), 2000);
       } else {
-        setPremiumStatus('pending');
-        pollRef.current = setInterval(async () => {
-          try {
-            const u = await refetchUser();
-            if (u?.is_premium) {
-              setPremiumStatus('active');
-              clearInterval(pollRef.current);
-              setTimeout(() => navigate('/'), 2000);
-            }
-          } catch (_) {}
-        }, 3000);
+        setPremiumStatus('slow');
+        setTimeout(() => navigate('/home'), 2000);
       }
-    } catch (_) {
-      setPremiumStatus('pending');
-    }
-  };
+    };
+
+    run();
+    return () => { cancelled = true; };
+  }, []);
 
   const handleClose = () => {
-    clearInterval(pollRef.current);
     if (onClose) onClose();
     else navigate(-1);
   };
@@ -87,7 +93,7 @@ export default function Paywall({ onClose }) {
   if (isPaymentSuccess) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 text-center">
-        <AnimatePresence mode="sync">
+        <AnimatePresence mode="wait">
           {premiumStatus === 'active' ? (
             <motion.div key="active" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center gap-6">
               <div className="w-20 h-20 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
@@ -96,6 +102,17 @@ export default function Paywall({ onClose }) {
               <div>
                 <h1 className="text-2xl font-grotesk font-black text-foreground mb-2">You are now Pro!</h1>
                 <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">All features unlocked. Redirecting you to training...</p>
+              </div>
+              <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            </motion.div>
+          ) : premiumStatus === 'slow' ? (
+            <motion.div key="slow" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center gap-6">
+              <div className="w-20 h-20 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
+                <CheckCircle size={40} className="text-emerald-400" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-grotesk font-black text-foreground mb-2">Payment received!</h1>
+                <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">Your account is being activated. You'll receive a confirmation email shortly.</p>
               </div>
               <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             </motion.div>

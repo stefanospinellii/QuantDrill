@@ -134,6 +134,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
+      // NOTE: intentionally does NOT touch isLoadingAuth — that is only for initial boot
       return currentUser;
     } catch (error) {
       console.error('Failed to refetch user:', error);
