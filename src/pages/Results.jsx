@@ -52,7 +52,7 @@ export default function Results() {
             glow={accuracy >= 80 ? 'glow-cyan' : accuracy >= 60 ? 'glow-purple' : ''}
           />
           <MetricCircle
-            value={`${speedPercentile}%`}
+            value={`Top ${Math.max(1, 100 - speedPercentile)}%`}
             label="Speed Rank"
             sub={`Faster than ${speedPercentile}% of candidates`}
             color={speedColor}

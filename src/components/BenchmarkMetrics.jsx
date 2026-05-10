@@ -82,8 +82,15 @@ function MetricCard({ label, value, sub, progress, ringColor, delay = 0, noData,
           color={noData ? 'rgba(255,255,255,0.08)' : ringColor}
           started={isInView}
         />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-sm font-grotesk font-black tabular-nums" style={{ color: noData ? 'rgba(255,255,255,0.2)' : '#fff' }}>
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <span
+            className="font-grotesk font-black tabular-nums leading-none"
+            style={{
+              fontSize: value && value.length > 4 ? '10px' : '13px',
+              color: noData ? 'rgba(255,255,255,0.2)' : '#fff',
+              textShadow: '0 0 8px rgba(0,0,0,0.9), 0 0 4px rgba(0,0,0,0.9)',
+            }}
+          >
             {noData ? '—' : value}
           </span>
         </div>
@@ -109,7 +116,9 @@ export default function BenchmarkMetrics({ sessions }) {
   const avgSpeed = hasData
     ? parseFloat((last5.reduce((s, r) => s + (r.avg_time ?? 14), 0) / last5.length).toFixed(1))
     : 0;
-  const speedPct = hasData ? getSpeedPercentile(avgSpeed, 'medium') : 0;
+  const rawSpeedPct = hasData ? getSpeedPercentile(avgSpeed, 'medium') : 0;
+  // Convert raw percentile (% of users slower than you) → "Top X%" rank (lower = better)
+  const speedTopPct = hasData ? Math.max(1, 100 - rawSpeedPct) : 0;
 
   const totalSessions = sessions.length;
   const nextBadge = getNextBadgeMilestone(sessions);
@@ -128,9 +137,9 @@ export default function BenchmarkMetrics({ sessions }) {
       />
       <MetricCard
         label="Speed Rank"
-        value={speedPct > 0 ? `Top ${speedPct}%` : '—'}
+        value={speedTopPct > 0 ? `Top ${speedTopPct}%` : '—'}
         sub="vs all candidates"
-        progress={Math.min(1, speedPct / 100)}
+        progress={hasData ? Math.min(1, (100 - speedTopPct) / 100) : 0}
         ringColor="hsl(262 83% 68%)"
         delay={0.1}
         noData={!hasData}
