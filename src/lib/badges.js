@@ -36,6 +36,8 @@ export function computeBadgeContext(sessions, streak) {
   const catAccSum = {};
   const catAvgAcc = {};
   let maxScore = 0;
+  let perfectCount = 0;
+  let hardCount = 0;
 
   for (const s of sessions) {
     const cat = s.category || 'daily';
@@ -43,17 +45,81 @@ export function computeBadgeContext(sessions, streak) {
     if (!catBest[cat] || s.score > catBest[cat]) catBest[cat] = s.score;
     if (s.score > maxScore) maxScore = s.score;
     catAccSum[cat] = (catAccSum[cat] || 0) + (s.accuracy || 0);
+    if (s.score === 100) perfectCount++;
+    if (s.difficulty === 'hard') hardCount++;
   }
 
   for (const cat of Object.keys(catCount)) {
     catAvgAcc[cat] = Math.round(catAccSum[cat] / catCount[cat]);
   }
 
-  return { totalDrills, streak, catCount, catBest, catAvgAcc, maxScore };
+  // High accuracy streak: 5 consecutive sessions with accuracy >= 90
+  let highAccStreak5 = false;
+  if (sessions.length >= 5) {
+    for (let i = 0; i <= sessions.length - 5; i++) {
+      if (sessions.slice(i, i + 5).every(s => (s.accuracy || 0) >= 90)) {
+        highAccStreak5 = true;
+        break;
+      }
+    }
+  }
+
+  // Speed badges: avg_time thresholds with score >= 70
+  const speedSub10_1 = sessions.some(s => (s.avg_time || 999) <= 10 && s.score >= 70);
+  const speedSub8_1  = sessions.some(s => (s.avg_time || 999) <= 8  && s.score >= 70);
+  const speedSub6_1  = sessions.some(s => (s.avg_time || 999) <= 6  && s.score >= 70);
+
+  // Time-of-day badges (use created_date)
+  let trainedEarly = false;
+  let trainedLate = false;
+  let trainedWeekend = false;
+  for (const s of sessions) {
+    if (!s.created_date) continue;
+    const d = new Date(s.created_date);
+    const h = d.getHours();
+    if (h < 7) trainedEarly = true;
+    if (h >= 22) trainedLate = true;
+    const day = d.getDay();
+    if (day === 0 || day === 6) trainedWeekend = true;
+  }
+
+  // Improving streak: last 3 sessions each scored higher than previous
+  let improvingStreak3 = false;
+  if (sessions.length >= 3) {
+    const last3 = sessions.slice(-3);
+    improvingStreak3 = last3[1].score > last3[0].score && last3[2].score > last3[1].score;
+  }
+
+  return {
+    totalDrills, streak, catCount, catBest, catAvgAcc, maxScore,
+    perfectCount, hardCount,
+    highAccStreak5,
+    speedSub10_1, speedSub8_1, speedSub6_1,
+    trainedEarly, trainedLate, trainedWeekend,
+    improvingStreak3,
+  };
 }
 
-/** Premium badges require this set of IDs — unlockable only with premium */
-export const PREMIUM_BADGE_IDS = new Set([
-  'streak_30', 'drills_500', 'perfect_score',
-  'mental_elite', 'compound_master', 'boardroom_ready', 'case_cracker', 'quant_elite',
+/**
+ * First 22 badges (general + one per sub-category) are FREE.
+ * All remaining 178 badges are PREMIUM.
+ * This matches the marketing copy: "22 free / 200 pro".
+ */
+const FREE_BADGE_IDS = new Set([
+  // 7 General
+  'first_drill', 'streak_7', 'streak_30', 'drills_10', 'drills_100', 'drills_500', 'perfect_score',
+  // 3 Mental Math
+  'speed_calculator', 'division_master', 'mental_elite',
+  // 3 Percentages
+  'percentage_assassin', 'growth_analyst', 'compound_master',
+  // 3 Business Math
+  'margin_machine', 'profit_hunter', 'boardroom_ready',
+  // 3 Market Sizing
+  'estimation_expert', 'market_mapper', 'case_cracker',
+  // 3 GMAT Quant
+  'quant_sprint', 'gmat_grinder', 'quant_elite',
 ]);
+
+export const PREMIUM_BADGE_IDS = new Set(
+  BADGES.filter(b => !FREE_BADGE_IDS.has(b.id)).map(b => b.id)
+);
