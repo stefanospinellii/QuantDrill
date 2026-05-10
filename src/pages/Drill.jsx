@@ -64,9 +64,9 @@ export default function Drill() {
   const durationParam = urlParams.get('duration');
   const pace = urlParams.get('pace') || 'normal'; // 'normal' | 'fast'
 
-  // Fast-Paced: use duration param. Normal: no global timer.
   const isFastPaced = pace === 'fast';
-  const totalSeconds = isFastPaced ? (parseInt(durationParam || '5', 10) * 60) : null;
+  // Both modes use the session timer — duration is always set from param
+  const totalSeconds = durationParam ? (parseInt(durationParam, 10) * 60) : null;
 
   const [currentQ, setCurrentQ] = useState(() => generateQuestion(difficulty, category));
   const [answer, setAnswer] = useState('');
