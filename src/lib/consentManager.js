@@ -64,20 +64,30 @@ export function resetConsent() {
  * Accept all cookies
  */
 export function acceptAll() {
-  return saveConsentState({
+  const state = saveConsentState({
     analytics: true,
     marketing: true,
   });
+  // Sync PostHog consent
+  if (typeof window !== 'undefined' && window.posthog) {
+    window.posthog.opt_in_capturing();
+  }
+  return state;
 }
 
 /**
  * Reject all non-essential cookies
  */
 export function rejectAll() {
-  return saveConsentState({
+  const state = saveConsentState({
     analytics: false,
     marketing: false,
   });
+  // Sync PostHog consent
+  if (typeof window !== 'undefined' && window.posthog) {
+    window.posthog.opt_out_capturing();
+  }
+  return state;
 }
 
 /**
