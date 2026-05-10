@@ -166,7 +166,7 @@ export default function Landing() {
               className="text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full"
               style={{ color: '#a78bfa', background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.22)', letterSpacing: '0.14em' }}
             >
-              MBB · IB · GMAT · GRE
+              MBB · IB · GMAT · GRE · MBA
             </span>
           </motion.div>
 
@@ -202,7 +202,7 @@ export default function Landing() {
             className="mt-8 mb-11 px-2"
           >
             Sharpen your numerical reflexes for the room.<br className="hidden sm:block" />
-            Daily 3-minute sessions. Real performance tracking.
+            Short daily sessions. Real performance tracking.
           </motion.p>
 
           {/* CTAs */}
@@ -338,21 +338,21 @@ export default function Landing() {
             {
               tag: 'MBB Consulting',
               headline: 'Ace your case interview before you walk in.',
-              body: 'Speed matters in McKinsey, BCG, and Bain cases. When a partner asks you to calculate market size on the spot, you need reflexes — not a calculator. QuantDrill builds exactly that.',
+              body: "When a partner asks you to size a market on the spot, you're expected to structure quickly and explain your reasoning step by step — under time pressure, without a calculator. QuantDrill builds exactly that reflex.",
               accent: '#7C3AED',
               from: -50,
             },
             {
-              tag: 'GMAT & MBA',
+              tag: 'GMAT & GRE',
               headline: 'The quant section is winnable. Make it yours.',
-              body: 'GMAT quant rewards fluency, not just method. Train your numerical intuition until shortcuts feel instinctive and 700+ feels achievable.',
+              body: 'Competitive MBA programs typically see GMAT Focus scores of 645–705+ for strong profiles, with GRE Quant at 165–170 for quant-heavy programs. Consistency across sections matters more than raw score — and consistency comes from repetition under real time pressure.',
               accent: '#6D28D9',
               from: 50,
             },
             {
               tag: 'Investment Banking',
               headline: 'Precision under pressure is the standard.',
-              body: "In IB interviews, you're expected to compute accurately and quickly. QuantDrill makes accuracy under pressure a habit, not an effort.",
+              body: "In IB interviews, you're expected to compute quickly and clearly explain your logic while under pressure. It's not just about getting the number right — it's about getting it right fast, and showing your reasoning every step of the way.",
               accent: '#7C3AED',
               from: -50,
             },
@@ -470,7 +470,7 @@ export default function Landing() {
               Your next interview<br />starts today.
             </h2>
             <p className="mt-6 mx-auto" style={{ color: 'rgba(255,255,255,0.38)', fontSize: 'clamp(0.9rem, 1.8vw, 1.05rem)', maxWidth: 420, lineHeight: 1.75 }}>
-              Three minutes. One daily habit. The edge you need.
+              One daily session. One lasting habit. The edge you need.
             </p>
           </div>
           <PrimaryBtn onClick={handleCTA} large>Start Training Free →</PrimaryBtn>

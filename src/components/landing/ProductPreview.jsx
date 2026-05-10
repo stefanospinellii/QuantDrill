@@ -77,7 +77,7 @@ export default function ProductPreview() {
 
   const accuracy = useCountUp(91, 1600, isInView);
   const streak = useCountUp(12, 1200, isInView);
-  const tests = useCountUp(128, 2000, isInView);
+  const tests = useCountUp(34, 2000, isInView);
 
   // Cycling questions for the drill card
   const questions = [
@@ -313,7 +313,7 @@ export default function ProductPreview() {
                 </div>
                 <div>
                   <p className="text-xs font-semibold" style={{ color: '#fff' }}>Accuracy</p>
-                  <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>Last 30 sessions</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>Last 5 sessions</p>
                 </div>
               </div>
 
@@ -323,7 +323,7 @@ export default function ProductPreview() {
                   { label: 'Avg Speed', value: '4.2s', sub: 'per question', color: '#00E5C4' },
                   { label: 'Tests Done', value: tests, sub: 'total sessions', color: '#a78bfa' },
                   { label: 'Percentile', value: 'Top 8%', sub: 'speed ranking', color: '#FF9933' },
-                  { label: 'Best Streak', value: '21 days', sub: 'personal record', color: '#a78bfa' },
+                  { label: 'Best Streak', value: `${streak} days`, sub: 'personal record', color: '#a78bfa' },
                 ].map((stat, i) => (
                   <motion.div
                     key={stat.label}
