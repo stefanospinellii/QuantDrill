@@ -8,7 +8,6 @@ import GlobalTimer from '@/components/drill/GlobalTimer';
 import QuestionCard from '@/components/drill/QuestionCard';
 import MobileHeader from '@/components/MobileHeader';
 
-
 export default function Drill() {
   const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
@@ -27,11 +26,8 @@ export default function Drill() {
   const inputRef = useRef(null);
   const resultsRef = useRef([]);
 
-  useEffect(() => {
-    setTimeout(() => inputRef.current?.focus(), 100);
-  }, []);
+  useEffect(() => { setTimeout(() => inputRef.current?.focus(), 100); }, []);
 
-  // Focus input on new question
   useEffect(() => {
     setStartTime(Date.now());
     setAnswer('');
@@ -46,11 +42,7 @@ export default function Drill() {
   }, [difficulty, category]);
 
   const finishSession = useCallback(async (finalResults) => {
-    if (!finalResults.length) {
-      navigate('/');
-      return;
-    }
-
+    if (!finalResults.length) { navigate('/'); return; }
     const correct = finalResults.filter(r => r.correct).length;
     const total = finalResults.length;
     const accuracy = Math.round((correct / total) * 100);
@@ -65,21 +57,19 @@ export default function Drill() {
     });
 
     (async () => {
-       try {
-         const user = await base44.auth.me();
-         await base44.entities.Session.create({
-           date: today, score, accuracy, avg_time: avgTime,
-           difficulty, category,
-           questions_answered: total,
-           correct_count: correct,
-           speed_rating: speedRating,
-           percentile: speedPercentile,
-           user_id: user?.id,
-         });
-         const newStreak = calculateNewStreak(user.streak_count || 0, user.last_active_date);
-         await base44.auth.updateMe({ streak_count: newStreak, last_active_date: today });
-       } catch (_e) { /* fire and forget */ }
-     })();
+      try {
+        const user = await base44.auth.me();
+        await base44.entities.Session.create({
+          date: today, score, accuracy, avg_time: avgTime,
+          difficulty, category,
+          questions_answered: total, correct_count: correct,
+          speed_rating: speedRating, percentile: speedPercentile,
+          user_id: user?.id,
+        });
+        const newStreak = calculateNewStreak(user.streak_count || 0, user.last_active_date);
+        await base44.auth.updateMe({ streak_count: newStreak, last_active_date: today });
+      } catch (_e) {}
+    })();
   }, [difficulty, category, durationMinutes, navigate]);
 
   const handleTimerExpire = useCallback(() => {
@@ -87,139 +77,212 @@ export default function Drill() {
     finishSession(resultsRef.current);
   }, [finishSession]);
 
-  // Auto-check on every keystroke
   const handleChange = (e) => {
     const val = e.target.value;
     setAnswer(val);
-
     if (!val.trim()) return;
-
     const correct = checkAnswer(val, currentQ.correct_answer);
     if (correct) {
       const timeTaken = (Date.now() - startTime) / 1000;
-      const result = { correct: true, timeTaken, answer: val, correctAnswer: currentQ.correct_answer };
-      const newResults = [...resultsRef.current, result];
+      const newResults = [...resultsRef.current, { correct: true, timeTaken, answer: val, correctAnswer: currentQ.correct_answer }];
       setFlash('correct');
-      // Haptic feedback on mobile
       if (navigator.vibrate) navigator.vibrate(40);
-      setTimeout(() => advanceToNext(newResults), 380);
+      setTimeout(() => advanceToNext(newResults), 400);
     }
   };
 
-  // Manual submit for wrong answers — user can press Enter to skip
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!answer.trim()) {
-      setShake(true);
-      setTimeout(() => setShake(false), 500);
-      return;
-    }
-
+    if (!answer.trim()) { setShake(true); setTimeout(() => setShake(false), 500); return; }
     const correct = checkAnswer(answer, currentQ.correct_answer);
-    if (correct) return; // already handled by onChange
-
-    // Wrong answer — flash red, record, and advance
+    if (correct) return;
     const timeTaken = (Date.now() - startTime) / 1000;
-    const result = { correct: false, timeTaken, answer, correctAnswer: currentQ.correct_answer };
-    const newResults = [...resultsRef.current, result];
+    const newResults = [...resultsRef.current, { correct: false, timeTaken, answer, correctAnswer: currentQ.correct_answer }];
     setFlash('wrong');
-    setTimeout(() => advanceToNext(newResults), 600);
+    setTimeout(() => advanceToNext(newResults), 650);
   };
 
-  // Border color based on flash
-  const borderClass = flash === 'correct'
-    ? 'border-emerald-500 bg-emerald-500/5'
-    : flash === 'wrong'
-    ? 'border-red-500 bg-red-500/5'
-    : 'border-border bg-surface-2';
+  const correctCount = resultsRef.current.filter(r => r.correct).length;
+  const totalAnswered = resultsRef.current.length;
+
+  // Difficulty badge config
+  const difficultyConfig = {
+    easy:   { label: 'Easy',   color: '#34D399', bg: 'rgba(52,211,153,0.1)',  border: 'rgba(52,211,153,0.2)' },
+    medium: { label: 'Medium', color: '#a78bfa', bg: 'rgba(167,139,250,0.1)', border: 'rgba(167,139,250,0.2)' },
+    hard:   { label: 'Hard',   color: '#FF9933', bg: 'rgba(255,153,51,0.1)',  border: 'rgba(255,153,51,0.2)' },
+  };
+  const diff = difficultyConfig[difficulty] || difficultyConfig.medium;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col pb-6">
+    <div className="min-h-screen flex flex-col" style={{ background: '#0B0F14' }}>
       <MobileHeader title="" onBack={() => { setSessionActive(false); navigate('/'); }} />
 
-      <div className="flex-1 flex flex-col w-full lg:max-w-xl lg:mx-auto lg:w-full">
+      {/* Ambient glow */}
+      <div className="fixed pointer-events-none" style={{
+        top: '-10%', left: '50%', transform: 'translateX(-50%)',
+        width: 600, height: 600,
+        background: 'radial-gradient(circle, rgba(124,58,237,0.07) 0%, transparent 65%)',
+        filter: 'blur(40px)',
+      }} />
 
-      {/* Global session timer */}
-      <div className="mt-4">
-        <GlobalTimer
-          totalSeconds={totalSeconds}
-          onExpire={handleTimerExpire}
-          isActive={sessionActive}
-        />
-      </div>
+      <div className="flex-1 flex flex-col w-full lg:max-w-xl lg:mx-auto lg:w-full relative z-10">
 
-      {/* Question counter */}
-      <div className="flex items-center justify-between px-5 mb-5">
-        <span className="text-xs text-muted-foreground uppercase tracking-widest">Question {questionCount + 1}</span>
-        <span className="text-xs font-semibold text-muted-foreground tabular-nums">
-          {resultsRef.current.filter(r => r.correct).length}
-          <span className="text-muted-foreground/40"> correct so far</span>
-        </span>
-      </div>
-
-      {/* Question card */}
-      <div className="flex-1 flex flex-col px-5 relative">
-        <div className="bg-surface-1 border border-border rounded-3xl p-6 mb-5 min-h-[160px] flex items-center">
-          <AnimatePresence mode="wait">
-            <QuestionCard
-              key={questionCount}
-              question={currentQ}
-              questionNumber={questionCount + 1}
-              total={null}
-            />
-          </AnimatePresence>
+        {/* Timer */}
+        <div className="mt-4">
+          <GlobalTimer totalSeconds={totalSeconds} onExpire={handleTimerExpire} isActive={sessionActive} />
         </div>
 
-        {/* Correct-answer flash banner */}
-        <AnimatePresence>
-          {flash === 'correct' && (
-            <motion.div
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="mb-4 rounded-2xl px-4 py-3 text-center bg-emerald-500/10 border border-emerald-500/30"
+        {/* Session header */}
+        <div className="flex items-center justify-between px-5 mb-4">
+          <div className="flex items-center gap-2">
+            <span
+              className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full"
+              style={{ color: diff.color, background: diff.bg, border: `1px solid ${diff.border}`, letterSpacing: '0.12em' }}
             >
-              <p className="font-grotesk font-bold text-base text-emerald-400">
-                ✓ Correct
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              {diff.label}
+            </span>
+            <span className="text-[10px] text-muted-foreground uppercase tracking-widest" style={{ letterSpacing: '0.1em' }}>
+              Q{questionCount + 1}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm font-grotesk font-bold tabular-nums" style={{ color: '#34D399' }}>{correctCount}</span>
+            <span className="text-xs" style={{ color: 'rgba(255,255,255,0.2)' }}>/</span>
+            <span className="text-sm font-grotesk font-bold tabular-nums" style={{ color: 'rgba(255,255,255,0.45)' }}>{totalAnswered}</span>
+            <span className="text-[10px] uppercase tracking-widest ml-1" style={{ color: 'rgba(255,255,255,0.25)' }}>correct</span>
+          </div>
+        </div>
 
-        {/* Wrong-answer flash banner */}
-        <AnimatePresence>
-          {flash === 'wrong' && (
-            <motion.div
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="mb-4 rounded-2xl px-4 py-3 text-center bg-red-500/10 border border-red-500/30"
-            >
-              <p className="font-grotesk font-bold text-base text-red-400">
-                ✗ Answer: {currentQ.correct_answer}
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Progress bar */}
+        {totalAnswered > 0 && (
+          <div className="px-5 mb-5">
+            <div className="h-0.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
+              <motion.div
+                className="h-full rounded-full"
+                style={{ background: 'linear-gradient(90deg, rgba(124,58,237,0.6), rgba(167,139,250,0.9))' }}
+                animate={{ width: `${(correctCount / Math.max(totalAnswered, 1)) * 100}%` }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              />
+            </div>
+          </div>
+        )}
 
-        {/* Answer input — auto-advances on correct */}
-        <form onSubmit={handleSubmit} className="mt-auto">
-          <div className={`relative transition-colors duration-150 rounded-2xl ${borderClass} ${shake ? 'animate-shake' : ''}`}>
-            <input
-              ref={inputRef}
-              type="text"
-              inputMode="numeric"
-              value={answer}
-              onChange={handleChange}
-              placeholder="Type your answer..."
-              autoComplete="off"
-              className="w-full bg-transparent rounded-2xl px-5 py-4 text-xl font-grotesk font-semibold text-foreground placeholder:text-muted-foreground/40 focus:outline-none border-none"
-            />
+        {/* Question card */}
+        <div className="flex-1 flex flex-col px-5">
+          <div
+            className="relative rounded-3xl p-6 mb-4 overflow-hidden"
+            style={{
+              background: flash === 'correct'
+                ? 'rgba(52,211,153,0.04)'
+                : flash === 'wrong'
+                ? 'rgba(239,68,68,0.04)'
+                : 'hsl(220 18% 9%)',
+              border: flash === 'correct'
+                ? '1px solid rgba(52,211,153,0.25)'
+                : flash === 'wrong'
+                ? '1px solid rgba(239,68,68,0.25)'
+                : '1px solid rgba(255,255,255,0.06)',
+              minHeight: 160,
+              transition: 'background 0.25s ease, border-color 0.25s ease',
+            }}
+          >
+            {/* Top edge glow */}
+            <div className="absolute top-0 left-0 right-0 h-px" style={{
+              background: flash === 'correct'
+                ? 'linear-gradient(90deg, transparent, rgba(52,211,153,0.4), transparent)'
+                : flash === 'wrong'
+                ? 'linear-gradient(90deg, transparent, rgba(239,68,68,0.4), transparent)'
+                : 'linear-gradient(90deg, transparent, rgba(124,58,237,0.25), transparent)',
+              transition: 'background 0.25s ease',
+            }} />
+
+            <AnimatePresence mode="wait">
+              <QuestionCard
+                key={questionCount}
+                question={currentQ}
+                questionNumber={questionCount + 1}
+              />
+            </AnimatePresence>
           </div>
 
-        </form>
-      </div>
+          {/* Feedback banners */}
+          <AnimatePresence>
+            {flash === 'correct' && (
+              <motion.div
+                initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.22 }}
+                className="mb-4 rounded-2xl px-4 py-3 flex items-center justify-center gap-2"
+                style={{ background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.2)' }}
+              >
+                <span className="text-sm font-grotesk font-bold" style={{ color: '#34D399' }}>✓ Correct</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
+          <AnimatePresence>
+            {flash === 'wrong' && (
+              <motion.div
+                initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.22 }}
+                className="mb-4 rounded-2xl px-4 py-3 flex items-center justify-between gap-3"
+                style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}
+              >
+                <span className="text-sm font-grotesk font-bold" style={{ color: '#f87171' }}>✗ Incorrect</span>
+                <span className="text-sm" style={{ color: 'rgba(255,255,255,0.55)' }}>Answer: <span className="font-bold text-white">{currentQ.correct_answer}</span></span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Answer input */}
+          <form onSubmit={handleSubmit} className="mt-auto pb-4">
+            <div
+              className={shake ? 'animate-shake' : ''}
+              style={{
+                borderRadius: 18,
+                background: flash === 'correct'
+                  ? 'rgba(52,211,153,0.05)'
+                  : flash === 'wrong'
+                  ? 'rgba(239,68,68,0.05)'
+                  : 'hsl(220 16% 12%)',
+                border: flash === 'correct'
+                  ? '1px solid rgba(52,211,153,0.3)'
+                  : flash === 'wrong'
+                  ? '1px solid rgba(239,68,68,0.3)'
+                  : '1px solid rgba(255,255,255,0.08)',
+                transition: 'all 0.22s ease',
+                boxShadow: flash === 'correct'
+                  ? '0 0 20px rgba(52,211,153,0.1)'
+                  : flash === 'wrong'
+                  ? '0 0 20px rgba(239,68,68,0.1)'
+                  : 'none',
+              }}
+            >
+              <input
+                ref={inputRef}
+                type="text"
+                inputMode="numeric"
+                value={answer}
+                onChange={handleChange}
+                placeholder="Type your answer..."
+                autoComplete="off"
+                className="w-full bg-transparent rounded-[18px] px-5 py-4 text-xl font-grotesk font-bold text-white placeholder:font-normal focus:outline-none"
+                style={{
+                  fontSize: 'clamp(1.1rem, 4vw, 1.3rem)',
+                  caretColor: 'hsl(262 83% 68%)',
+                  color: flash === 'correct' ? '#34D399' : flash === 'wrong' ? '#f87171' : '#fff',
+                  transition: 'color 0.2s ease',
+                }}
+              />
+            </div>
+            <p className="text-center text-[10px] mt-2.5 uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.18)', letterSpacing: '0.1em' }}>
+              Auto-advances on correct · Press enter to skip
+            </p>
+          </form>
+        </div>
       </div>
     </div>
   );

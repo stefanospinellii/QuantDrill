@@ -1,78 +1,96 @@
-import { motion } from 'framer-motion';
+import { useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { getSpeedPercentile } from '@/lib/questionGenerator';
-import { BADGES, computeBadgeContext } from '@/lib/badges';
+import { computeBadgeContext } from '@/lib/badges';
 
-function Ring({ radius, stroke, progress, color }) {
+function AnimatedRing({ radius, stroke, progress, color, started }) {
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference * (1 - Math.min(1, Math.max(0, progress)));
   const size = (radius + stroke) * 2;
   return (
     <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-      <circle cx={size / 2} cy={size / 2} r={radius} stroke="hsl(220 15% 16%)" strokeWidth={stroke} fill="none" />
+      <circle cx={size / 2} cy={size / 2} r={radius} stroke="rgba(255,255,255,0.05)" strokeWidth={stroke} fill="none" />
       <circle
         cx={size / 2} cy={size / 2} r={radius}
         stroke={color} strokeWidth={stroke} fill="none"
         strokeDasharray={circumference}
-        strokeDashoffset={offset}
+        strokeDashoffset={started ? circumference * (1 - Math.min(1, Math.max(0, progress))) : circumference}
         strokeLinecap="round"
-        style={{ transition: 'stroke 0.1s, stroke-dashoffset 0.4s ease' }}
+        style={{ transition: 'stroke-dashoffset 1.1s cubic-bezier(0.16,1,0.3,1)' }}
       />
     </svg>
   );
 }
 
 function getAccuracyColor(accuracy) {
-  if (accuracy >= 95) return '#22c55e';
-  if (accuracy >= 90) return '#86efac';
-  if (accuracy >= 80) return '#eab308';
+  if (accuracy >= 90) return '#34D399';
+  if (accuracy >= 80) return '#a78bfa';
+  if (accuracy >= 70) return '#FF9933';
   return '#ef4444';
 }
 
 function getNextBadgeMilestone(sessions) {
-  const ctx = computeBadgeContext(sessions, 0);
   const totalDrills = sessions.length;
-
-  // Volume-based drill milestones in order
   const milestones = [
-    { drills: 1,   label: 'First Rep' },
-    { drills: 10,  label: 'Warming Up' },
-    { drills: 100, label: 'Centurion' },
-    { drills: 500, label: 'Elite Performer' },
-    { drills: 1000, label: '200 badges across 6 performance categories' },
+    { drills: 1,    label: 'First Rep' },
+    { drills: 10,   label: 'Warming Up' },
+    { drills: 25,   label: 'Consistent' },
+    { drills: 100,  label: 'Centurion' },
+    { drills: 500,  label: 'Elite' },
   ];
-
   for (const m of milestones) {
     if (totalDrills < m.drills) {
-      const remaining = m.drills - totalDrills;
-      return `${remaining} more drill${remaining !== 1 ? 's' : ''} until ${m.label}`;
+      const rem = m.drills - totalDrills;
+      return `${rem} to ${m.label}`;
     }
   }
-  return 'All milestones reached!';
+  return 'All milestones unlocked';
 }
 
 function MetricCard({ label, value, sub, progress, ringColor, delay = 0, noData, onClick }) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
+
   return (
     <motion.button
+      ref={ref}
       onClick={onClick}
-      initial={{ opacity: 0, y: 14 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.35 }}
-      className="bg-surface-2 border border-border rounded-2xl p-3 flex flex-col items-center text-center gap-2 w-full active:scale-95 transition-transform no-select"
+      transition={{ delay, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+      className="relative flex flex-col items-center text-center gap-2 w-full no-select overflow-hidden"
+      style={{
+        background: 'hsl(220 18% 9%)',
+        border: '1px solid rgba(255,255,255,0.06)',
+        borderRadius: 18,
+        padding: '14px 8px 12px',
+        transition: 'all 0.22s ease',
+      }}
+      whileHover={{ y: -2, borderColor: 'rgba(124,58,237,0.3)', transition: { duration: 0.18 } }}
     >
-      <p className="text-[9px] font-medium text-muted-foreground uppercase tracking-widest leading-none w-full text-center">
+      {/* Top edge glow on hover */}
+      <div className="absolute top-0 left-0 right-0 h-px opacity-0 group-hover:opacity-100" style={{ background: `linear-gradient(90deg, transparent, ${ringColor}40, transparent)` }} />
+
+      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest leading-none w-full text-center" style={{ letterSpacing: '0.12em' }}>
         {label}
       </p>
+
       <div className="relative flex items-center justify-center">
-        <Ring radius={30} stroke={4} progress={noData ? 0 : progress} color={noData ? 'hsl(220 15% 22%)' : ringColor} />
+        <AnimatedRing
+          radius={30} stroke={3.5}
+          progress={noData ? 0 : progress}
+          color={noData ? 'rgba(255,255,255,0.08)' : ringColor}
+          started={isInView}
+        />
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-base font-grotesk font-black tabular-nums text-foreground leading-none">
+          <span className="text-sm font-grotesk font-black tabular-nums" style={{ color: noData ? 'rgba(255,255,255,0.2)' : '#fff' }}>
             {noData ? '—' : value}
           </span>
         </div>
       </div>
-      <p className="text-[10px] text-muted-foreground leading-snug min-h-[28px] flex items-center justify-center px-1">
-        {noData ? 'No data yet' : (sub || '')}
+
+      <p className="text-[9px] leading-snug min-h-[24px] flex items-center justify-center px-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
+        {noData ? 'Complete a session' : (sub || '')}
       </p>
     </motion.button>
   );
@@ -83,23 +101,17 @@ export default function BenchmarkMetrics({ sessions }) {
   const last5 = sessions.slice(0, 5);
   const hasData = last5.length > 0;
 
-  // Accuracy
   const avgAccuracy = hasData
     ? Math.round(last5.reduce((s, r) => s + (r.accuracy ?? 0), 0) / last5.length)
     : 0;
   const accuracyColor = getAccuracyColor(avgAccuracy);
-  const accuracyProgress = avgAccuracy / 95;
 
-  // Speed — show percentile as primary value
   const avgSpeed = hasData
     ? parseFloat((last5.reduce((s, r) => s + (r.avg_time ?? 14), 0) / last5.length).toFixed(1))
     : 0;
   const speedPct = hasData ? getSpeedPercentile(avgSpeed, 'medium') : 0;
-  const speedProgress = Math.min(1, speedPct / 100);
 
-  // Volume / badge milestone
   const totalSessions = sessions.length;
-  const volumeProgress = Math.min(1, totalSessions / 50);
   const nextBadge = getNextBadgeMilestone(sessions);
 
   return (
@@ -107,8 +119,8 @@ export default function BenchmarkMetrics({ sessions }) {
       <MetricCard
         label="Accuracy"
         value={`${avgAccuracy}%`}
-        sub={null}
-        progress={accuracyProgress}
+        sub="last 5 sessions"
+        progress={avgAccuracy / 95}
         ringColor={accuracyColor}
         delay={0.05}
         noData={!hasData}
@@ -116,19 +128,19 @@ export default function BenchmarkMetrics({ sessions }) {
       />
       <MetricCard
         label="Speed Rank"
-        value={`${speedPct}%`}
-        sub={`Top ${speedPct}% of candidates`}
-        progress={speedProgress}
+        value={speedPct > 0 ? `Top ${speedPct}%` : '—'}
+        sub="vs all candidates"
+        progress={Math.min(1, speedPct / 100)}
         ringColor="hsl(262 83% 68%)"
         delay={0.1}
         noData={!hasData}
         onClick={() => navigate('/progress?section=speed')}
       />
       <MetricCard
-        label="Volume"
+        label="Sessions"
         value={totalSessions}
         sub={nextBadge}
-        progress={volumeProgress}
+        progress={Math.min(1, totalSessions / 50)}
         ringColor="hsl(28 100% 58%)"
         delay={0.15}
         noData={totalSessions === 0}
