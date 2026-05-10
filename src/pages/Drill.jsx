@@ -162,7 +162,7 @@ export default function Drill() {
         <div className="bg-surface-1 border border-border rounded-3xl p-6 mb-5 min-h-[160px] flex items-center">
           <AnimatePresence mode="wait">
             <QuestionCard
-              key={`${questionCount}-${currentQ.prompt}`}
+              key={questionCount}
               question={currentQ}
               questionNumber={questionCount + 1}
               total={null}
