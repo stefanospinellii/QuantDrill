@@ -491,6 +491,7 @@ export default function Landing() {
           {[
             { label: 'Privacy Policy', href: '/privacy' },
             { label: 'Terms of Service', href: '/terms' },
+            { label: 'About', href: '/about' },
           ].map(l => (
             <a key={l.label} href={l.href} className="text-xs transition-colors duration-200" style={{ color: 'rgba(255,255,255,0.28)' }}
               onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}

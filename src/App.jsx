@@ -19,6 +19,7 @@ import Badges from '@/pages/Badges';
 import Paywall from '@/pages/Paywall';
 import Privacy from '@/pages/Privacy';
 import Terms from '@/pages/Terms';
+import About from '@/pages/About';
 import EmailVerification from '@/pages/EmailVerification';
 import CookieBanner from '@/components/CookieBanner';
 // CookieBanner is rendered at root level so it mounts for ALL users (auth + unauth)
@@ -47,6 +48,7 @@ const AuthenticatedApp = () => {
         <AnimatePresence mode="wait" initial={false}>
           <Routes location={location} key={location.pathname}>
             <Route path="/" element={<Landing />} />
+            <Route path="/about" element={<About />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </AnimatePresence>
@@ -73,6 +75,7 @@ const AuthenticatedApp = () => {
         <Route path="/drill" element={<PageTransition><Drill /></PageTransition>} />
         <Route path="/results" element={<PageTransition><Results /></PageTransition>} />
         <Route path="/paywall" element={<PageTransition><Paywall /></PageTransition>} />
+        <Route path="/about" element={<About />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="*" element={<PageNotFound />} />
